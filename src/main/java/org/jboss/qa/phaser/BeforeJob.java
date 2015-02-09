@@ -15,18 +15,12 @@
  */
 package org.jboss.qa.phaser;
 
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
-public class Phaser {
-
-	private PhaseTree phaseTree;
-	private Class<?> jobClass;
-
-	public void run() throws Exception {
-		final List<ExecutionNode> executions = phaseTree.validate().buildPhaseDefinitions(jobClass).buildExecutionTree();
-		new Executor(jobClass, executions).execute();
-	}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface BeforeJob {
 }

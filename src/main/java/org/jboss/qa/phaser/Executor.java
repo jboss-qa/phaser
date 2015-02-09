@@ -15,29 +15,44 @@
  */
 package org.jboss.qa.phaser;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
 public class Executor {
 
+	private Class<?> jobClass;
 	private List<ExecutionNode> roots;
+	private Object instance;
 
-	public void execute(Class<?> jobClazz) throws Exception {
-
+	public Executor(Class<?> jobClass, List<ExecutionNode> roots) throws Exception {
+		this.jobClass = jobClass;
+		this.roots = roots;
 		// TODO(vchalupa): field injection
-		final Object instance = jobClazz.newInstance();
+		instance = jobClass.newInstance();
+	}
 
-		// TODO(vchalupa): execute before job method
+	public void execute() throws Exception {
+		invokeJobMethods(BeforeJob.class);
 
 		final Queue<ExecutionNode> nodeQueue = new LinkedList<>(roots);
 		while (!nodeQueue.isEmpty()) {
 			final ExecutionNode node = nodeQueue.poll();
 			node.execute(instance);
 			nodeQueue.addAll(node.getChildNodes());
+		}
+
+		invokeJobMethods(AfterJob.class);
+	}
+
+	private void invokeJobMethods(Class<? extends Annotation> annotaitonClass) throws Exception {
+		for (Method m : jobClass.getMethods()) {
+			Annotation annotation = m.getAnnotation(annotaitonClass);
+			if (annotation != null) {
+				m.invoke(instance);
+			}
 		}
 	}
 }

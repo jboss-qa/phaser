@@ -14,6 +14,16 @@ import lombok.extern.slf4j.Slf4j;
 })
 public class TestJob {
 
+	@BeforeJob
+	public void beforeJobA() {
+		log.info("BEFORE JOB #1");
+	}
+
+	@BeforeJob
+	public void beforeJobB() {
+		log.info("BEFORE JOB #2");
+	}
+
 	@Second(id = "Second#1", main = "Main#1")
 	public void scpA() {
 		log.info("Second[ID=Second#1, mainRef=Main#1, order=0]");
@@ -27,5 +37,15 @@ public class TestJob {
 	@Third(id = "Third#1", second = "Second#2")
 	public void thpA() {
 		log.info("Third[ID=Third#1, secondRef=null, order=0]");
+	}
+
+	@AfterJob
+	public void afterJobA() {
+		log.info("AFTER JOB #1");
+	}
+
+	@AfterJob
+	public void afterJobB() {
+		log.info("AFTER JOB #2");
 	}
 }
