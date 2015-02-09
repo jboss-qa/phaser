@@ -15,12 +15,20 @@
  */
 package org.jboss.qa.phaser;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import lombok.extern.slf4j.Slf4j;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.InvocationHandler;
+
+@Slf4j
 public class Executor {
 
 	private Class<?> jobClass;
@@ -30,8 +38,8 @@ public class Executor {
 	public Executor(Class<?> jobClass, List<ExecutionNode> roots) throws Exception {
 		this.jobClass = jobClass;
 		this.roots = roots;
-		// TODO(vchalupa): field injection
 		instance = jobClass.newInstance();
+		injectFields();
 	}
 
 	public void execute() throws Exception {
@@ -49,9 +57,45 @@ public class Executor {
 
 	private void invokeJobMethods(Class<? extends Annotation> annotaitonClass) throws Exception {
 		for (Method m : jobClass.getMethods()) {
-			Annotation annotation = m.getAnnotation(annotaitonClass);
+			final Annotation annotation = m.getAnnotation(annotaitonClass);
 			if (annotation != null) {
 				m.invoke(instance);
+			}
+		}
+	}
+
+	private void injectFields() throws Exception {
+		for (final Field field : jobClass.getDeclaredFields()) {
+			final Inject inject = field.getAnnotation(Inject.class);
+
+			if (inject != null) {
+				final Class<?> type = field.getType();
+
+				final Enhancer enhancer = new Enhancer();
+				enhancer.setSuperclass(type);
+				enhancer.setCallback(new InvocationHandler() {
+
+					@Override
+					public Object invoke(Object o, Method method, Object[] args) throws Throwable {
+						if (StringUtils.isNotEmpty(inject.id())) {
+							return method.invoke(InstanceRegistry.get(inject.id(), type));
+						}
+
+						final List<Object> instances = InstanceRegistry.get(type);
+						if (instances.size() == 1) {
+							return method.invoke(instances.get(0), args);
+						} else if (instances.size() > 1) {
+							log.warn("Can not inject {} in {}: more instances existing", field.getName(), jobClass.getCanonicalName());
+						}
+
+						return method.invoke(null, args);
+					}
+				});
+
+				log.debug("Creating proxy for {}", field.getName());
+				field.setAccessible(true);
+				// TODO(vchalupa): check and properly log final classes and classes without default constructor
+				field.set(instance, enhancer.create());
 			}
 		}
 	}

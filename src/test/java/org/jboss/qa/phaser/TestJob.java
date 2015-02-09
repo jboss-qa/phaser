@@ -14,9 +14,17 @@ import lombok.extern.slf4j.Slf4j;
 })
 public class TestJob {
 
+	@Inject(id = "IP1")
+	public InjectionPoint ip1;
+
+	@Inject
+	public AbstractInjectionPoint ip2;
+
 	@BeforeJob
 	public void beforeJobA() {
 		log.info("BEFORE JOB #1");
+
+		InstanceRegistry.insert("IP1", new InjectionPoint("IP3"));
 	}
 
 	@BeforeJob
@@ -27,6 +35,9 @@ public class TestJob {
 	@Second(id = "Second#1", main = "Main#1")
 	public void scpA() {
 		log.info("Second[ID=Second#1, mainRef=Main#1, order=0]");
+
+		log.info("InjectionPoint: {}", ip1.getContent());
+		log.info("AbstractInjectionPoint: {}", ip2.getContent());
 	}
 
 	@Second(id = "Second#2", order = -1)

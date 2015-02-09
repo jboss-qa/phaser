@@ -13,8 +13,8 @@ import java.lang.annotation.Target;
 public @interface Main {
 
 	@Id
-	public String id();
+	String id();
 
 	@Order
-	public int order() default 0;
+	int order() default 0;
 }
