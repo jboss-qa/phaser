@@ -41,6 +41,14 @@
 			<version>1.16.0</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.1.1</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -53,7 +61,7 @@
 					<configLocation>checkstyle/checkstyle.xml</configLocation>
 					<consoleOutput>true</consoleOutput>
 					<failsOnError>true</failsOnError>
-					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<includeTestSourceDirectory>false</includeTestSourceDirectory>
 				</configuration>
 				<dependencies>
 					<dependency>
