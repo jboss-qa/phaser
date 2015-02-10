@@ -14,11 +14,11 @@ import java.lang.annotation.Target;
 public @interface Third {
 
 	@Id
-	public String id() default "";
+	String id() default "";
 
 	@ParentId
-	public String second() default "";
+	String second() default "";
 
 	@Order
-	public int order() default 0;
+	int order() default 0;
 }

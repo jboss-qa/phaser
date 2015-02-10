@@ -42,7 +42,7 @@ public class PhaseTreeBuilder {
 			throw new IllegalArgumentException("Parent phase " + parent.getClass().getCanonicalName() + " is not registered");
 		}
 
-		PhaseTreeNode node = new PhaseTreeNode(phase);
+		final PhaseTreeNode node = new PhaseTreeNode(phase);
 		nodes.put(phase.getClass(), node);
 		parentNode.addChild(node);
 

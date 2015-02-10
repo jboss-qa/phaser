@@ -9,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class MainPhaseProcessor extends PhaseDefinitionProcessor {
 
-	private Main download;
+	private Main main;
 
 	public void execute() {
-		log.info("MainPhase: ID={}", download.id());
+		log.info("MainPhase: ID={}", main.id());
 	}
 }
