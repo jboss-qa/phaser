@@ -33,16 +33,20 @@ public class TestJob {
 	}
 
 	@Second(id = "Second#1", main = "Main#1")
-	public void scpA() {
+	public void scpA(InjectionPoint ipLocal, @Create MyPoint mpLocal) {
 		log.info("Second[ID=Second#1, mainRef=Main#1, order=0]");
 
 		log.info("InjectionPoint: {}", ip1.getContent());
 		log.info("AbstractInjectionPoint: {}", ip2.getContent());
+		log.info("InjectionPoint: {}", ipLocal.getContent());
+		log.info("MyPoint: {}", mpLocal.getContent());
+		mpLocal.setContent("CHANGED");
 	}
 
-	@Second(id = "Second#2", order = -1)
-	public void scpB() {
-		log.info("Second[ID=Second#2, mainRef=null, order=-1]");
+	@Second(id = "Second#2", order = 2)
+	public void scpB(MyPoint mpLocal) {
+		log.info("Second[ID=Second#2, mainRef=null, order=2]");
+		log.info("MyPoint: {}", mpLocal.getContent());
 	}
 
 	@Third(id = "Third#1", second = "Second#2")

@@ -15,6 +15,9 @@
  */
 package org.jboss.qa.phaser;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,9 +46,63 @@ public class ExecutionNode {
 		processor.execute();
 
 		// If phase definition has method, invoke it
-		// TODO(vchalupa): solve argument injection
 		if (phaseDefinition.getMethod() != null) {
-			phaseDefinition.getMethod().invoke(instance);
+
+			final Class<?>[] paramClasses = phaseDefinition.getMethod().getParameterTypes();
+			final Annotation[][] paramAnnotations = phaseDefinition.getMethod().getParameterAnnotations();
+
+			if (paramClasses.length == 0) { // no parameters to inject
+				phaseDefinition.getMethod().invoke(instance);
+			} else {
+				final List<List<Object>> paramInstances = new ArrayList<>();
+				for (int i = 0; i < paramClasses.length; i++) {
+					boolean created = false;
+					for (int j = 0; j < paramAnnotations[i].length; j++) {
+						if (paramAnnotations[i][j] instanceof Create) { // Create instance for @Create params
+							final Create create = (Create) paramAnnotations[i][j];
+							final Object o = paramClasses[i].newInstance();
+							if (StringUtils.isNotEmpty(create.id())) {
+								InstanceRegistry.insert(create.id(), o);
+							} else {
+								InstanceRegistry.insert(o);
+							}
+							// Add created instance as unique instance of parameter
+							final List<Object> ip = new ArrayList<>();
+							ip.add(o);
+							paramInstances.add(ip);
+							created = true;
+						}
+					}
+					if (!created) { // Find all existing instances
+						paramInstances.add(InstanceRegistry.get(paramClasses[i]));
+					}
+				}
+
+				for (List<Object> paramList : createCartesianProduct(paramInstances)) {
+					phaseDefinition.getMethod().invoke(instance, paramList.toArray());
+				}
+			}
 		}
+	}
+
+	// TODO(vchalupa): Move to utils or use some util library
+	private static List<List<Object>> createCartesianProduct(List<List<Object>> lists) {
+		final List<List<Object>> resultLists = new ArrayList<>();
+		if (lists.size() == 0) {
+			resultLists.add(new ArrayList<>());
+			return resultLists;
+		} else {
+			final List<Object> firstList = lists.get(0);
+			final List<List<Object>> remainingLists = createCartesianProduct(lists.subList(1, lists.size()));
+			for (Object condition : firstList) {
+				for (List<Object> remainingList : remainingLists) {
+					final ArrayList<Object> resultList = new ArrayList<>();
+					resultList.add(condition);
+					resultList.addAll(remainingList);
+					resultLists.add(resultList);
+				}
+			}
+		}
+		return resultLists;
 	}
 }

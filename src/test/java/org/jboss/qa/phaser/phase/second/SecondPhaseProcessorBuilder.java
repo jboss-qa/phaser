@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 
 public class SecondPhaseProcessorBuilder extends PhaseDefinitionProcessorBuilder<Second> {
 
-	public SecondPhaseProcessor buildProcessor(Second annotation,Method method) {
+	public SecondPhaseProcessor buildProcessor(Second annotation, Method method) {
 		return new SecondPhaseProcessor(annotation);
 	}
 }
