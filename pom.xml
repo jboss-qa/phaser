@@ -96,4 +96,12 @@
 			<url>http://dl.bintray.com/jboss-soa-qa/maven/</url>
 		</pluginRepository>
 	</pluginRepositories>
+
+	<distributionManagement>
+		<repository>
+			<id>bintray-jboss-soa-qa-maven-phaser</id>
+			<name>jboss-soa-qa-maven-phaser</name>
+			<url>https://api.bintray.com/maven/jboss-soa-qa/maven/phaser</url>
+		</repository>
+	</distributionManagement>
 </project>
