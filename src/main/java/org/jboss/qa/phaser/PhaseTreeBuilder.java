@@ -16,36 +16,42 @@
 package org.jboss.qa.phaser;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PhaseTreeBuilder {
 
-	private Map<Class<?>, PhaseTreeNode> nodes = new HashMap<>();
 	private List<PhaseTreeNode> roots = new ArrayList<>();
+	private PhaseTreeNode actualNodeLevel;
+	private PhaseTreeNode actualNode;
 
 	public PhaseTreeBuilder addRootPhase(Phase phase) {
 		final PhaseTreeNode node = new PhaseTreeNode(phase);
-		nodes.put(phase.getClass(), node);
+		actualNodeLevel = null;
+		actualNode = node;
 		roots.add(node);
-
 		return this;
 	}
 
-	public PhaseTreeBuilder addPhase(Phase parent, Phase phase) {
-		if (parent == null) {
+	public PhaseTreeBuilder addPhase(Phase phase) {
+		if (actualNodeLevel == null) {
 			return addRootPhase(phase);
 		}
-		final PhaseTreeNode parentNode = nodes.get(parent.getClass());
-		if (parentNode == null) {
-			throw new IllegalArgumentException("Parent phase " + parent.getClass().getCanonicalName() + " is not registered");
-		}
-
 		final PhaseTreeNode node = new PhaseTreeNode(phase);
-		nodes.put(phase.getClass(), node);
-		parentNode.addChild(node);
+		actualNodeLevel.addChild(node);
+		actualNode = node;
+		return this;
+	}
 
+	public PhaseTreeBuilder next() {
+		actualNodeLevel = actualNode;
+		return this;
+	}
+
+	public PhaseTreeBuilder back() {
+		if (actualNodeLevel != null) {
+			actualNode = actualNodeLevel;
+			actualNodeLevel = actualNodeLevel.getParent();
+		}
 		return this;
 	}
 

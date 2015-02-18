@@ -24,6 +24,7 @@ import lombok.Getter;
 
 public class PhaseTreeNode {
 
+	@Getter private PhaseTreeNode parent;
 	@Getter private List<PhaseTreeNode> childNodes = new ArrayList<>();
 	@Getter private Phase phase;
 	private Set<PhaseDefinition> phaseDefinitions = new TreeSet<>();
@@ -33,6 +34,7 @@ public class PhaseTreeNode {
 	}
 
 	public void addChild(PhaseTreeNode childNode) {
+		childNode.parent = this;
 		childNodes.add(childNode);
 	}
 
