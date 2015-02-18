@@ -12,6 +12,6 @@ public class ThirdPhaseProcessor extends PhaseDefinitionProcessor {
 	private Third third;
 
 	public void execute() {
-		log.info("SecondPhase: ID={}, secondRef={}", third.id(), third.second());
+		log.info("ThirdPhase: ID={}, secondRef={}", third.id(), third.second());
 	}
 }

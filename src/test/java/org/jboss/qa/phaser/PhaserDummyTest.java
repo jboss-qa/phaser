@@ -15,8 +15,7 @@ public class PhaserDummyTest {
 		ThirdPhase thp = new ThirdPhase();
 
 		PhaseTreeBuilder builder = new PhaseTreeBuilder();
-		builder.addRootPhase(dp).addPhase(dp, scp).addPhase(scp, thp);
-
+		builder.addPhase(dp).next().addPhase(scp).next().addPhase(thp);
 		new Phaser(builder.build(), TestJob.class).run();
 	}
 }
