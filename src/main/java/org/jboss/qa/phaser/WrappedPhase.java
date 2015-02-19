@@ -20,8 +20,8 @@ import org.jboss.qa.phaser.util.ReflectionUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.TreeSet;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -35,8 +35,8 @@ public class WrappedPhase<B extends PhaseDefinitionProcessorBuilder<A>, A extend
 	}
 
 	@Override
-	public TreeSet<PhaseDefinition<A>> findAllOrderedDefinitions(Class<?> jobClass) throws Exception {
-		final TreeSet<PhaseDefinition<A>> phaseDefinitions = new TreeSet<>();
+	public List<PhaseDefinition<A>> findAllOrderedDefinitions(Class<?> jobClass) throws Exception {
+		final List<PhaseDefinition<A>> phaseDefinitions = new ArrayList<>();
 		W wrappingAnnotation = jobClass.getAnnotation(annotationWrapperClass);
 		if (wrappingAnnotation != null) {
 			phaseDefinitions.addAll(findWrappedDefinitions(wrappingAnnotation, null));
@@ -48,6 +48,7 @@ public class WrappedPhase<B extends PhaseDefinitionProcessorBuilder<A>, A extend
 			}
 		}
 
+		Collections.sort(phaseDefinitions);
 		return phaseDefinitions;
 	}
 

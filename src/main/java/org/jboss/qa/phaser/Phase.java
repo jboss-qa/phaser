@@ -19,8 +19,9 @@ import org.jboss.qa.phaser.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import lombok.Getter;
 
@@ -35,8 +36,8 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 		annotationClass = ReflectionUtils.getGenericClass(getClass(), 1);
 	}
 
-	public Set<PhaseDefinition<A>> findAllOrderedDefinitions(Class<?> jobClass) throws Exception {
-		final TreeSet<PhaseDefinition<A>> phaseDefinitions = new TreeSet<>();
+	public List<PhaseDefinition<A>> findAllOrderedDefinitions(Class<?> jobClass) throws Exception {
+		final List<PhaseDefinition<A>> phaseDefinitions = new ArrayList<>();
 		A annotation = jobClass.getAnnotation(annotationClass);
 		if (annotation != null) {
 			phaseDefinitions.add(createPhaseDefinition(annotation, null));
@@ -47,6 +48,7 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 				phaseDefinitions.add(createPhaseDefinition(annotation, m));
 			}
 		}
+		Collections.sort(phaseDefinitions);
 		return phaseDefinitions;
 	}
 
