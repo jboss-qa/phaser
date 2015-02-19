@@ -17,8 +17,6 @@ package org.jboss.qa.phaser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import lombok.Getter;
 
@@ -27,7 +25,7 @@ public class PhaseTreeNode {
 	@Getter private PhaseTreeNode parent;
 	@Getter private List<PhaseTreeNode> childNodes = new ArrayList<>();
 	@Getter private Phase phase;
-	private Set<PhaseDefinition> phaseDefinitions = new TreeSet<>();
+	private List<PhaseDefinition> phaseDefinitions;
 
 	public PhaseTreeNode(Phase phase) {
 		this.phase = phase;
