@@ -27,13 +27,13 @@ public class PhaseDefinition<A extends Annotation> implements Comparable<PhaseDe
 
 	@Getter private Object id;
 	@Getter private Object parentId;
-	@NonNull @Getter private int order;
+	@NonNull @Getter private Number order;
 	@NonNull @Getter private Phase phase;
 	@NonNull @Getter private A annotation;
 	@Getter private Method method;
 
 	@Override
 	public int compareTo(PhaseDefinition o) {
-		return order - o.order;
+		return Double.compare(order.doubleValue(), o.order.doubleValue());
 	}
 }

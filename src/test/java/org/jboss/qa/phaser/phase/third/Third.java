@@ -20,5 +20,5 @@ public @interface Third {
 	String second() default "";
 
 	@Order
-	int order() default 0;
+	double order() default 0;
 }

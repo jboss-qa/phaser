@@ -16,12 +16,20 @@
 package org.jboss.qa.phaser;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class PhaseValidator {
 
-	public static void validate(Phase phase) throws PhaseValidationException {
-		validateIdPresence(phase);
-		validateOrderType(phase);
+	private static Map<Class<?>, Class<?>> primitiveTypeMap = new HashMap<>();
+
+	static {
+		primitiveTypeMap.put(Integer.TYPE, Integer.class);
+		primitiveTypeMap.put(Long.TYPE, Long.class);
+		primitiveTypeMap.put(Double.TYPE, Double.class);
+		primitiveTypeMap.put(Float.TYPE, Float.class);
+		primitiveTypeMap.put(Byte.TYPE, Byte.class);
+		primitiveTypeMap.put(Short.TYPE, Short.class);
 	}
 
 	private static void validateIdPresence(Phase phase) throws PhaseValidationException {
@@ -35,10 +43,25 @@ public final class PhaseValidator {
 
 	private static void validateOrderType(Phase phase) throws PhaseValidationException {
 		for (Method m : phase.getAnnotationClass().getMethods()) {
-			if (m.isAnnotationPresent(Order.class) && !m.getReturnType().equals(Integer.TYPE)) {
-				throw new PhaseValidationException(Order.class.getName() + " method does not return integer in " + phase.getAnnotationClass().getCanonicalName());
+			if (m.isAnnotationPresent(Order.class)) {
+				Class<?> orderType = m.getReturnType();
+				if (orderType.isPrimitive()) {
+					final Class<?> numberType = primitiveTypeMap.get(orderType);
+					if (numberType != null) {
+						orderType = numberType;
+					}
+				}
+
+				if (!Number.class.isAssignableFrom(orderType)) {
+					throw new PhaseValidationException(Order.class.getName() + " method does not return number in " + phase.getAnnotationClass().getCanonicalName());
+				}
 			}
 		}
+	}
+
+	public static void validate(Phase phase) throws PhaseValidationException {
+		validateIdPresence(phase);
+		validateOrderType(phase);
 	}
 
 	private PhaseValidator() {
