@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @MainWrapper({
 		@Main(id = "Main#1"),
-		@Main(id = "Main#2", order = -1),
+		//@Main(id = "Main#2", order = -1),
 })
 public class TestJob {
 
@@ -49,9 +49,19 @@ public class TestJob {
 		log.info("MyPoint: {}", mpLocal.getContent());
 	}
 
-	@Third(id = "Third#1", second = "Second#2")
+	@Third(id = "Third#1", second = "Second#2", order = 1)
 	public void thpA() {
-		log.info("Third[ID=Third#1, secondRef=null, order=0]");
+		log.info("Third[ID=Third#1, secondRef=null, order=1]");
+	}
+
+	@Third(id = "Third#2", second = "Second#2", order = 2)
+	public void thpB() {
+		log.info("Third[ID=Third#2, secondRef=null, order=2]");
+	}
+
+	@Third(id = "Third#3", second = "Second#2", order = 1.1)
+	public void thpC() {
+		log.info("Third[ID=Third#3, secondRef=null, order=3]");
 	}
 
 	@AfterJob

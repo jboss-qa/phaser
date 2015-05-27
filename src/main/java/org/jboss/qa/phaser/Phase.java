@@ -55,8 +55,14 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 	public PhaseDefinition<A> createPhaseDefinition(A annotation, Method method) {
 		final String id = ReflectionUtils.invokeAnnotationMethod(annotation, Id.class);
 		final String parentId = ReflectionUtils.invokeAnnotationMethod(annotation, ParentId.class);
-		final int order = ReflectionUtils.invokeAnnotationMethod(annotation, Order.class);
+		final Number order = ReflectionUtils.invokeAnnotationMethod(annotation, Order.class);
 
-		return new PhaseDefinition<>(id == null || id.isEmpty() ? null : id, parentId == null || parentId.isEmpty() ? null : parentId, order, this, annotation, method);
+		return new PhaseDefinition<>(
+				id == null || id.isEmpty() ? null : id,
+				parentId == null || parentId.isEmpty() ? null : parentId,
+				order,
+				this,
+				annotation,
+				method);
 	}
 }
