@@ -59,9 +59,18 @@ public final class PhaseValidator {
 		}
 	}
 
+	private static void validateRunAllwaysType(Phase phase) throws PhaseValidationException {
+		for (Method m : phase.getAnnotationClass().getMethods()) {
+			if (m.isAnnotationPresent(RunAlways.class) && !m.getReturnType().equals(String.class)) {
+				throw new PhaseValidationException(RunAlways.class.getName() + " method does not return String in " + phase.getAnnotationClass().getCanonicalName());
+			}
+		}
+	}
+
 	public static void validate(Phase phase) throws PhaseValidationException {
 		validateIdPresence(phase);
 		validateOrderType(phase);
+		validateRunAllwaysType(phase);
 	}
 
 	private PhaseValidator() {

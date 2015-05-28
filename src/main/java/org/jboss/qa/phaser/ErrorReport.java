@@ -15,27 +15,12 @@
  */
 package org.jboss.qa.phaser;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
 
 @AllArgsConstructor
-public class PhaseDefinition<A extends Annotation> implements Comparable<PhaseDefinition> {
+public class ErrorReport {
 
-	@Getter private Object id;
-	@Getter private Object parentId;
-	@NonNull @Getter private Number order;
-	@Getter private ExceptionHandling exceptionHandling;
-	@Getter private boolean runAlways;
-	@NonNull @Getter private Phase phase;
-	@NonNull @Getter private A annotation;
-	@Getter private Method method;
-
-	@Override
-	public int compareTo(PhaseDefinition o) {
-		return Double.compare(order.doubleValue(), o.order.doubleValue());
-	}
+	@Getter private String detail;
+	@Getter private Throwable throwable;
 }

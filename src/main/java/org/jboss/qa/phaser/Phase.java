@@ -57,10 +57,29 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 		final String parentId = ReflectionUtils.invokeAnnotationMethod(annotation, ParentId.class);
 		final Number order = ReflectionUtils.invokeAnnotationMethod(annotation, Order.class);
 
+		boolean runAlways = false;
+		final String raValues = ReflectionUtils.invokeAnnotationMethod(annotation, RunAlways.class);
+		if (raValues != null && !raValues.isEmpty()) {
+			runAlways = Boolean.parseBoolean(raValues);
+		} else if (method != null && method.isAnnotationPresent(RunAlways.class)) {
+			runAlways = true;
+		}
+
+		ExceptionHandling eh = null;
+		OnException onExp = ReflectionUtils.invokeAnnotationMethod(annotation, OnExceptionDefinition.class);
+		if (onExp == null && method != null) {
+			onExp = method.getAnnotation(OnException.class);
+		}
+		if (onExp != null) {
+			eh = new ExceptionHandling(onExp.execution(), onExp.report());
+		}
+
 		return new PhaseDefinition<>(
 				id == null || id.isEmpty() ? null : id,
 				parentId == null || parentId.isEmpty() ? null : parentId,
 				order,
+				eh,
+				runAlways,
 				this,
 				annotation,
 				method);

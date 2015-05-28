@@ -43,16 +43,41 @@ public class Executor {
 	}
 
 	public void execute() throws Exception {
+		final List<ErrorReport> throwAtEnd = new LinkedList<>();
 		invokeJobMethods(BeforeJob.class);
 
 		final Queue<ExecutionNode> nodeQueue = new LinkedList<>(roots);
+		boolean finalizeState = false;
 		while (!nodeQueue.isEmpty()) {
 			final ExecutionNode node = nodeQueue.poll();
-			node.execute(instance);
+
+			final ExecutionError err = node.execute(instance, finalizeState);
+
+			if (err != null) {
+				final ExceptionHandling eh = err.getExceptionHandling();
+				final ErrorReport errorReport = new ErrorReport("Exception thrown by phase execution:", err.getThrowable());
+				switch (eh.getReport()) {
+					case THROW_AT_END:
+						throwAtEnd.add(errorReport);
+						break;
+					case LOG:
+						ErrorReporter.report(errorReport);
+						break;
+					default:
+						log.debug("Exception by phase execution, continue.");
+				}
+
+				if (eh.getExecution() == ExceptionHandling.Execution.IMMEDIATELY_STOP) {
+					break;
+				} else if (eh.getExecution() == ExceptionHandling.Execution.FINALIZE) {
+					finalizeState = true;
+				}
+			}
 			nodeQueue.addAll(node.getChildNodes());
 		}
 
 		invokeJobMethods(AfterJob.class);
+		ErrorReporter.finalErrorReport(throwAtEnd);
 	}
 
 	private void invokeJobMethods(Class<? extends Annotation> annotaitonClass) throws Exception {
