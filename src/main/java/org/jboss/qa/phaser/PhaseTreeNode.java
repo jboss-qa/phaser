@@ -16,6 +16,7 @@
 package org.jboss.qa.phaser;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Getter;
@@ -51,16 +52,29 @@ public class PhaseTreeNode {
 	}
 
 	public List<ExecutionNode> buildExecutionTree(PhaseDefinition<?> parent) {
-		final List<ExecutionNode> executionNodes = new ArrayList<>();
-		for (PhaseDefinition pd : phaseDefinitions) {
-			if (parent == null || pd.getParentId() == null || pd.getParentId().equals(parent.getId())) {
-				final ExecutionNode executionNode = new ExecutionNode(pd, phase.getPhaseDefinitionBuilder().buildProcessor(pd.getAnnotation(), pd.getMethod()));
-				for (PhaseTreeNode node : childNodes) {
-					executionNode.addChildNodes(node.buildExecutionTree(pd));
+		final List<ExecutionNode> executionNodes = new LinkedList<>();
+
+		if (phaseDefinitions.isEmpty()) {
+			// no phase definition for current phase, skip and process child nodes
+			for (PhaseTreeNode node : childNodes) {
+				executionNodes.addAll(node.buildExecutionTree(null)); // no parent ID
+			}
+		} else {
+			for (PhaseDefinition pd : phaseDefinitions) {
+				if (isAcceptable(parent, pd)) {
+					final ExecutionNode executionNode = new ExecutionNode(
+							pd, phase.getPhaseDefinitionBuilder().buildProcessor(pd.getAnnotation(), pd.getMethod()));
+					for (PhaseTreeNode node : childNodes) {
+						executionNode.addChildNodes(node.buildExecutionTree(pd));
+					}
+					executionNodes.add(executionNode);
 				}
-				executionNodes.add(executionNode);
 			}
 		}
 		return executionNodes;
+	}
+
+	private boolean isAcceptable(PhaseDefinition<?> parent, PhaseDefinition<?> candidate) {
+		return candidate.getParentId() == null || parent != null && candidate.getParentId().equals(parent.getId());
 	}
 }

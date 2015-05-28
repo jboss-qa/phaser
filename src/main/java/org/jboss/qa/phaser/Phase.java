@@ -19,8 +19,8 @@ import org.jboss.qa.phaser.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Getter;
@@ -37,7 +37,7 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 	}
 
 	public List<PhaseDefinition<A>> findAllOrderedDefinitions(Class<?> jobClass) throws Exception {
-		final List<PhaseDefinition<A>> phaseDefinitions = new ArrayList<>();
+		final List<PhaseDefinition<A>> phaseDefinitions = new LinkedList<>();
 		A annotation = jobClass.getAnnotation(annotationClass);
 		if (annotation != null) {
 			phaseDefinitions.add(createPhaseDefinition(annotation, null));
