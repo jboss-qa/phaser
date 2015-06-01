@@ -15,15 +15,12 @@
  */
 package org.jboss.qa.phaser;
 
-public abstract class PhaseDefinitionProcessor {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-	public abstract void execute();
-
-	public ExecutionError handleException(Throwable t) {
-		return new ExecutionError(new ExceptionHandling(), t);
-	}
-
-	public ExecutionError handleException(ExceptionHandling exceptionHandling, Throwable t) {
-		return new ExecutionError(exceptionHandling, t);
-	}
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface OnExceptionDefinition {
 }

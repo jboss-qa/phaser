@@ -15,15 +15,26 @@
  */
 package org.jboss.qa.phaser;
 
-public abstract class PhaseDefinitionProcessor {
+import java.util.List;
 
-	public abstract void execute();
+import lombok.extern.slf4j.Slf4j;
 
-	public ExecutionError handleException(Throwable t) {
-		return new ExecutionError(new ExceptionHandling(), t);
+@Slf4j
+public final class ErrorReporter {
+
+	public static void report(ErrorReport errorReport) {
+		log.error(errorReport.getDetail(), errorReport.getThrowable());
 	}
 
-	public ExecutionError handleException(ExceptionHandling exceptionHandling, Throwable t) {
-		return new ExecutionError(exceptionHandling, t);
+	public static void finalErrorReport(List<ErrorReport> errorReports) throws Exception {
+		if (!errorReports.isEmpty()) {
+			for (ErrorReport errorReport : errorReports) {
+				report(errorReport);
+			}
+			throw new Exception("There are handled execution exceptions!");
+		}
+	}
+
+	private ErrorReporter() {
 	}
 }

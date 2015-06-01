@@ -18,6 +18,7 @@ package org.jboss.qa.phaser;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,48 +42,68 @@ public class ExecutionNode {
 		childNodes.addAll(nodes);
 	}
 
-	public void execute(Object instance) throws Exception {
-		// Invoke phase definition processor
-		processor.execute();
+	public ExecutionError execute(Object instance, boolean finalize) {
 
-		// If phase definition has method, invoke it
-		if (phaseDefinition.getMethod() != null) {
+		// finalizing state, skip non run always methods
+		if (finalize && !phaseDefinition.isRunAlways()) {
+			return null;
+		}
 
-			final Class<?>[] paramClasses = phaseDefinition.getMethod().getParameterTypes();
-			final Annotation[][] paramAnnotations = phaseDefinition.getMethod().getParameterAnnotations();
+		try {
+			// Invoke phase definition processor
+			processor.execute();
 
-			if (paramClasses.length == 0) { // no parameters to inject
-				phaseDefinition.getMethod().invoke(instance);
-			} else {
-				final List<List<Object>> paramInstances = new ArrayList<>();
-				for (int i = 0; i < paramClasses.length; i++) {
-					boolean created = false;
-					for (int j = 0; j < paramAnnotations[i].length; j++) {
-						if (paramAnnotations[i][j] instanceof Create) { // Create instance for @Create params
-							final Create create = (Create) paramAnnotations[i][j];
-							final Object o = paramClasses[i].newInstance();
-							if (StringUtils.isNotEmpty(create.id())) {
-								InstanceRegistry.insert(create.id(), o);
-							} else {
-								InstanceRegistry.insert(o);
+			// If phase definition has method, invoke it
+			if (phaseDefinition.getMethod() != null) {
+
+				final Class<?>[] paramClasses = phaseDefinition.getMethod().getParameterTypes();
+				final Annotation[][] paramAnnotations = phaseDefinition.getMethod().getParameterAnnotations();
+
+				if (paramClasses.length == 0) { // no parameters to inject
+					phaseDefinition.getMethod().invoke(instance);
+				} else {
+					final List<List<Object>> paramInstances = new ArrayList<>();
+					for (int i = 0; i < paramClasses.length; i++) {
+						boolean created = false;
+						for (int j = 0; j < paramAnnotations[i].length; j++) {
+							if (paramAnnotations[i][j] instanceof Create) { // Create instance for @Create params
+								final Create create = (Create) paramAnnotations[i][j];
+								final Object o = paramClasses[i].newInstance();
+								if (StringUtils.isNotEmpty(create.id())) {
+									InstanceRegistry.insert(create.id(), o);
+								} else {
+									InstanceRegistry.insert(o);
+								}
+								// Add created instance as unique instance of parameter
+								final List<Object> ip = new ArrayList<>();
+								ip.add(o);
+								paramInstances.add(ip);
+								created = true;
 							}
-							// Add created instance as unique instance of parameter
-							final List<Object> ip = new ArrayList<>();
-							ip.add(o);
-							paramInstances.add(ip);
-							created = true;
+						}
+						if (!created) { // Find all existing instances
+							paramInstances.add(InstanceRegistry.get(paramClasses[i]));
 						}
 					}
-					if (!created) { // Find all existing instances
-						paramInstances.add(InstanceRegistry.get(paramClasses[i]));
+
+					for (List<Object> paramList : createCartesianProduct(paramInstances)) {
+						phaseDefinition.getMethod().invoke(instance, paramList.toArray());
 					}
 				}
-
-				for (List<Object> paramList : createCartesianProduct(paramInstances)) {
-					phaseDefinition.getMethod().invoke(instance, paramList.toArray());
-				}
 			}
+			return null; // ok, no exception
+		} catch (InvocationTargetException e) {
+			return generateExecutionError(e.getCause());
+		} catch (Throwable e) {
+			return generateExecutionError(e);
 		}
+	}
+
+	private ExecutionError generateExecutionError(Throwable t) {
+		if (phaseDefinition.getExceptionHandling() != null) {
+			return processor.handleException(phaseDefinition.getExceptionHandling(), t);
+		}
+		return processor.handleException(t);
 	}
 
 	// TODO(vchalupa): Move to utils or use some util library
