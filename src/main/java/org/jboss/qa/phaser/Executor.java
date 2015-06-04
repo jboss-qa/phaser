@@ -90,38 +90,42 @@ public class Executor {
 	}
 
 	private void injectFields() throws Exception {
-		for (final Field field : jobClass.getDeclaredFields()) {
-			final Inject inject = field.getAnnotation(Inject.class);
+		Class<?> current = jobClass;
+		while (current.getSuperclass() != null) {
+			for (final Field field : current.getDeclaredFields()) {
+				final Inject inject = field.getAnnotation(Inject.class);
 
-			if (inject != null) {
-				final Class<?> type = field.getType();
+				if (inject != null) {
+					final Class<?> type = field.getType();
 
-				final Enhancer enhancer = new Enhancer();
-				enhancer.setSuperclass(type);
-				enhancer.setCallback(new InvocationHandler() {
+					final Enhancer enhancer = new Enhancer();
+					enhancer.setSuperclass(type);
+					enhancer.setCallback(new InvocationHandler() {
 
-					@Override
-					public Object invoke(Object o, Method method, Object[] args) throws Throwable {
-						if (StringUtils.isNotEmpty(inject.id())) {
-							return method.invoke(InstanceRegistry.get(inject.id(), type));
+						@Override
+						public Object invoke(Object o, Method method, Object[] args) throws Throwable {
+							if (StringUtils.isNotEmpty(inject.id())) {
+								return method.invoke(InstanceRegistry.get(inject.id(), type));
+							}
+
+							final List<Object> instances = InstanceRegistry.get(type);
+							if (instances.size() == 1) {
+								return method.invoke(instances.get(0), args);
+							} else if (instances.size() > 1) {
+								log.warn("Can not inject {} in {}: more instances existing", field.getName(), jobClass.getCanonicalName());
+							}
+
+							return method.invoke(null, args);
 						}
+					});
 
-						final List<Object> instances = InstanceRegistry.get(type);
-						if (instances.size() == 1) {
-							return method.invoke(instances.get(0), args);
-						} else if (instances.size() > 1) {
-							log.warn("Can not inject {} in {}: more instances existing", field.getName(), jobClass.getCanonicalName());
-						}
-
-						return method.invoke(null, args);
-					}
-				});
-
-				log.debug("Creating proxy for {}", field.getName());
-				field.setAccessible(true);
-				// TODO(vchalupa): check and properly log final classes and classes without default constructor
-				field.set(instance, enhancer.create());
+					log.debug("Creating proxy for {}", field.getName());
+					field.setAccessible(true);
+					// TODO(vchalupa): check and properly log final classes and classes without default constructor
+					field.set(instance, enhancer.create());
+				}
 			}
+			current = current.getSuperclass();
 		}
 	}
 }
