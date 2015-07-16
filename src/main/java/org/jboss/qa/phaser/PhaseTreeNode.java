@@ -16,6 +16,7 @@
 package org.jboss.qa.phaser;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,10 +45,16 @@ public class PhaseTreeNode {
 		}
 	}
 
-	public void buildPhaseDefinitions(Class<?> jobClass) throws Exception {
-		phaseDefinitions = phase.findAllOrderedDefinitions(jobClass);
+	public void buildPhaseDefinitions(List<Object> jobs) throws Exception {
+		phaseDefinitions = new LinkedList<>();
+		for (Object job: jobs) {
+			phaseDefinitions.addAll(phase.findAllDefinitions(job));
+		}
+		// sort phase definitions from all job instances
+		Collections.sort(phaseDefinitions);
+
 		for (PhaseTreeNode node : childNodes) {
-			node.buildPhaseDefinitions(jobClass);
+			node.buildPhaseDefinitions(jobs);
 		}
 	}
 

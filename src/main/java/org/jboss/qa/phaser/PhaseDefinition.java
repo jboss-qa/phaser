@@ -32,6 +32,7 @@ public class PhaseDefinition<A extends Annotation> implements Comparable<PhaseDe
 	@Getter private boolean runAlways;
 	@NonNull @Getter private Phase phase;
 	@NonNull @Getter private A annotation;
+	@NonNull @Getter private Object job;
 	@Getter private Method method;
 
 	@Override

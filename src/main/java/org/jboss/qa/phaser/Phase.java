@@ -19,7 +19,6 @@ import org.jboss.qa.phaser.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,23 +35,22 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 		annotationClass = ReflectionUtils.getGenericClass(getClass(), 1);
 	}
 
-	public List<PhaseDefinition<A>> findAllOrderedDefinitions(Class<?> jobClass) throws Exception {
+	public List<PhaseDefinition<A>> findAllDefinitions(Object job) throws Exception {
 		final List<PhaseDefinition<A>> phaseDefinitions = new LinkedList<>();
-		A annotation = jobClass.getAnnotation(annotationClass);
+		A annotation = job.getClass().getAnnotation(annotationClass);
 		if (annotation != null) {
-			phaseDefinitions.add(createPhaseDefinition(annotation, null));
+			phaseDefinitions.add(createPhaseDefinition(annotation, job, null));
 		}
-		for (Method m : jobClass.getMethods()) {
+		for (Method m : job.getClass().getMethods()) {
 			annotation = m.getAnnotation(annotationClass);
 			if (annotation != null) {
-				phaseDefinitions.add(createPhaseDefinition(annotation, m));
+				phaseDefinitions.add(createPhaseDefinition(annotation, job, m));
 			}
 		}
-		Collections.sort(phaseDefinitions);
 		return phaseDefinitions;
 	}
 
-	public PhaseDefinition<A> createPhaseDefinition(A annotation, Method method) {
+	public PhaseDefinition<A> createPhaseDefinition(A annotation, Object job, Method method) {
 		final String id = ReflectionUtils.invokeAnnotationMethod(annotation, Id.class);
 		final String parentId = ReflectionUtils.invokeAnnotationMethod(annotation, ParentId.class);
 		final Number order = ReflectionUtils.invokeAnnotationMethod(annotation, Order.class);
@@ -82,6 +80,7 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 				runAlways,
 				this,
 				annotation,
+				job,
 				method);
 	}
 }

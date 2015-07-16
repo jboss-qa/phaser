@@ -20,7 +20,6 @@ import org.jboss.qa.phaser.util.ReflectionUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import lombok.Getter;
@@ -35,30 +34,29 @@ public class WrappedPhase<B extends PhaseDefinitionProcessorBuilder<A>, A extend
 	}
 
 	@Override
-	public List<PhaseDefinition<A>> findAllOrderedDefinitions(Class<?> jobClass) throws Exception {
+	public List<PhaseDefinition<A>> findAllDefinitions(Object job) throws Exception {
 		final List<PhaseDefinition<A>> phaseDefinitions = new ArrayList<>();
-		W wrappingAnnotation = jobClass.getAnnotation(annotationWrapperClass);
+		W wrappingAnnotation = job.getClass().getAnnotation(annotationWrapperClass);
 		if (wrappingAnnotation != null) {
-			phaseDefinitions.addAll(findWrappedDefinitions(wrappingAnnotation, null));
+			phaseDefinitions.addAll(findWrappedDefinitions(wrappingAnnotation, job, null));
 		}
-		for (Method m : jobClass.getMethods()) {
+		for (Method m : job.getClass().getMethods()) {
 			wrappingAnnotation = m.getAnnotation(annotationWrapperClass);
 			if (wrappingAnnotation != null) {
-				phaseDefinitions.addAll(findWrappedDefinitions(wrappingAnnotation, m));
+				phaseDefinitions.addAll(findWrappedDefinitions(wrappingAnnotation, job, m));
 			}
 		}
 
-		Collections.sort(phaseDefinitions);
 		return phaseDefinitions;
 	}
 
-	private List<PhaseDefinition<A>> findWrappedDefinitions(W wrappingAnnotation, Method method) throws Exception {
+	private List<PhaseDefinition<A>> findWrappedDefinitions(W wrappingAnnotation, Object job, Method method) throws Exception {
 		final List<PhaseDefinition<A>> phaseDefinitions = new ArrayList<>();
 		for (Method m : wrappingAnnotation.annotationType().getMethods()) {
 			final Class<?> type = m.getReturnType();
 			if (type.isArray() && type.getComponentType().isAssignableFrom(getAnnotationClass())) {
 				for (A a: (A[]) m.invoke(wrappingAnnotation)) {
-					phaseDefinitions.add(createPhaseDefinition(a, method));
+					phaseDefinitions.add(createPhaseDefinition(a, job, method));
 				}
 			}
 		}

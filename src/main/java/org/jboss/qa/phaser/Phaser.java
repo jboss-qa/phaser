@@ -15,6 +15,7 @@
  */
 package org.jboss.qa.phaser;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -23,10 +24,16 @@ import lombok.AllArgsConstructor;
 public class Phaser {
 
 	private PhaseTree phaseTree;
-	private Class<?> jobClass;
+	private List<Object> jobs;
+
+	public Phaser(PhaseTree phaseTree, Object job) {
+		this.phaseTree = phaseTree;
+		this.jobs = new ArrayList<>(1);
+		this.jobs.add(job);
+	}
 
 	public void run() throws Exception {
-		final List<ExecutionNode> executions = phaseTree.validate().buildPhaseDefinitions(jobClass).buildExecutionTree();
-		new Executor(jobClass, executions).execute();
+		final List<ExecutionNode> executions = phaseTree.validate().buildPhaseDefinitions(jobs).buildExecutionTree();
+		new Executor(jobs, executions).execute();
 	}
 }
