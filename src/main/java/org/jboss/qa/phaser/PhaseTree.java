@@ -33,9 +33,9 @@ public class PhaseTree {
 		return this;
 	}
 
-	public PhaseTree buildPhaseDefinitions(Class<?> jobClass) throws Exception {
+	public PhaseTree buildPhaseDefinitions(List<Object> jobs) throws Exception {
 		for (PhaseTreeNode root : roots) {
-			root.buildPhaseDefinitions(jobClass);
+			root.buildPhaseDefinitions(jobs);
 		}
 		return this;
 	}

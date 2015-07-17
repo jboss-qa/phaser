@@ -31,14 +31,12 @@ import net.sf.cglib.proxy.InvocationHandler;
 @Slf4j
 public class Executor {
 
-	private Class<?> jobClass;
+	private List<Object> jobs;
 	private List<ExecutionNode> roots;
-	private Object instance;
 
-	public Executor(Class<?> jobClass, List<ExecutionNode> roots) throws Exception {
-		this.jobClass = jobClass;
+	public Executor(List<Object> jobs, List<ExecutionNode> roots) throws Exception {
+		this.jobs = jobs;
 		this.roots = roots;
-		instance = jobClass.newInstance();
 		injectFields();
 	}
 
@@ -51,7 +49,7 @@ public class Executor {
 		while (!nodeQueue.isEmpty()) {
 			final ExecutionNode node = nodeQueue.poll();
 
-			final ExecutionError err = node.execute(instance, finalizeState);
+			final ExecutionError err = node.execute(finalizeState);
 
 			if (err != null) {
 				final ExceptionHandling eh = err.getExceptionHandling();
@@ -80,52 +78,56 @@ public class Executor {
 		ErrorReporter.finalErrorReport(throwAtEnd);
 	}
 
-	private void invokeJobMethods(Class<? extends Annotation> annotaitonClass) throws Exception {
-		for (Method m : jobClass.getMethods()) {
-			final Annotation annotation = m.getAnnotation(annotaitonClass);
-			if (annotation != null) {
-				m.invoke(instance);
+	private void invokeJobMethods(Class<? extends Annotation> annotationClass) throws Exception {
+		for (Object job : jobs) {
+			for (Method m : job.getClass().getMethods()) {
+				final Annotation annotation = m.getAnnotation(annotationClass);
+				if (annotation != null) {
+					m.invoke(job);
+				}
 			}
 		}
 	}
 
 	private void injectFields() throws Exception {
-		Class<?> current = jobClass;
-		while (current.getSuperclass() != null) {
-			for (final Field field : current.getDeclaredFields()) {
-				final Inject inject = field.getAnnotation(Inject.class);
+		for (final Object job : jobs) {
+			Class<?> current = job.getClass();
+			while (current.getSuperclass() != null) {
+				for (final Field field : current.getDeclaredFields()) {
+					final Inject inject = field.getAnnotation(Inject.class);
 
-				if (inject != null) {
-					final Class<?> type = field.getType();
+					if (inject != null) {
+						final Class<?> type = field.getType();
 
-					final Enhancer enhancer = new Enhancer();
-					enhancer.setSuperclass(type);
-					enhancer.setCallback(new InvocationHandler() {
+						final Enhancer enhancer = new Enhancer();
+						enhancer.setSuperclass(type);
+						enhancer.setCallback(new InvocationHandler() {
 
-						@Override
-						public Object invoke(Object o, Method method, Object[] args) throws Throwable {
-							if (StringUtils.isNotEmpty(inject.id())) {
-								return method.invoke(InstanceRegistry.get(inject.id(), type));
+							@Override
+							public Object invoke(Object o, Method method, Object[] args) throws Throwable {
+								if (StringUtils.isNotEmpty(inject.id())) {
+									return method.invoke(InstanceRegistry.get(inject.id(), type));
+								}
+
+								final List<Object> instances = InstanceRegistry.get(type);
+								if (instances.size() == 1) {
+									return method.invoke(instances.get(0), args);
+								} else if (instances.size() > 1) {
+									log.warn("Can not inject {} in {}: more instances existing", field.getName(), job.getClass().getCanonicalName());
+								}
+
+								return method.invoke(null, args);
 							}
+						});
 
-							final List<Object> instances = InstanceRegistry.get(type);
-							if (instances.size() == 1) {
-								return method.invoke(instances.get(0), args);
-							} else if (instances.size() > 1) {
-								log.warn("Can not inject {} in {}: more instances existing", field.getName(), jobClass.getCanonicalName());
-							}
-
-							return method.invoke(null, args);
-						}
-					});
-
-					log.debug("Creating proxy for {}", field.getName());
-					field.setAccessible(true);
-					// TODO(vchalupa): check and properly log final classes and classes without default constructor
-					field.set(instance, enhancer.create());
+						log.debug("Creating proxy for {}", field.getName());
+						field.setAccessible(true);
+						// TODO(vchalupa): check and properly log final classes and classes without default constructor
+						field.set(job, enhancer.create());
+					}
 				}
+				current = current.getSuperclass();
 			}
-			current = current.getSuperclass();
 		}
 	}
 }

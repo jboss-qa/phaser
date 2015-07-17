@@ -25,6 +25,7 @@ public class TestJob {
 		log.info("BEFORE JOB #1");
 
 		InstanceRegistry.insert("IP1", new InjectionPoint("IP3"));
+		InstanceRegistry.insert(new MyPoint("MyPoint Content"));
 	}
 
 	@BeforeJob

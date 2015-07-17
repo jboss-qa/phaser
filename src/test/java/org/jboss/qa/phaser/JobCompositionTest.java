@@ -6,16 +6,24 @@ import org.jboss.qa.phaser.phase.third.ThirdPhase;
 
 import org.testng.annotations.Test;
 
-public class PhaserDummyTest {
+import java.util.ArrayList;
+import java.util.List;
+
+public class JobCompositionTest {
 
 	@Test
-	public void testRun() throws Exception {
+	public void testJobComposition() throws Exception {
 		MainPhase dp = new MainPhase();
 		SecondPhase scp = new SecondPhase();
 		ThirdPhase thp = new ThirdPhase();
 
 		PhaseTreeBuilder builder = new PhaseTreeBuilder();
 		builder.addPhase(dp).next().addPhase(scp).next().addPhase(thp);
-		new Phaser(builder.build(), TestJob.class.newInstance()).run();
+
+		List<Object> jobs = new ArrayList<>(2);
+		jobs.add(ChildJob.class.newInstance());
+		jobs.add(ParentJob.class.newInstance());
+
+		new Phaser(builder.build(), jobs).run();
 	}
 }

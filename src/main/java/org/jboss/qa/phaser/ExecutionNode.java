@@ -42,7 +42,7 @@ public class ExecutionNode {
 		childNodes.addAll(nodes);
 	}
 
-	public ExecutionError execute(Object instance, boolean finalize) {
+	public ExecutionError execute(boolean finalize) {
 
 		// finalizing state, skip non run always methods
 		if (finalize && !phaseDefinition.isRunAlways()) {
@@ -60,7 +60,7 @@ public class ExecutionNode {
 				final Annotation[][] paramAnnotations = phaseDefinition.getMethod().getParameterAnnotations();
 
 				if (paramClasses.length == 0) { // no parameters to inject
-					phaseDefinition.getMethod().invoke(instance);
+					phaseDefinition.getMethod().invoke(phaseDefinition.getJob());
 				} else {
 					final List<List<Object>> paramInstances = new ArrayList<>();
 					for (int i = 0; i < paramClasses.length; i++) {
@@ -87,7 +87,7 @@ public class ExecutionNode {
 					}
 
 					for (List<Object> paramList : createCartesianProduct(paramInstances)) {
-						phaseDefinition.getMethod().invoke(instance, paramList.toArray());
+						phaseDefinition.getMethod().invoke(phaseDefinition.getJob(), paramList.toArray());
 					}
 				}
 			}
