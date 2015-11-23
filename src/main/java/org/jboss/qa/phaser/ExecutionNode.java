@@ -17,8 +17,12 @@ package org.jboss.qa.phaser;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.jboss.qa.phaser.context.Context;
+import org.jboss.qa.phaser.context.PropertyAnnotationProcessor;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -30,9 +34,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ExecutionNode {
 
-	@NonNull private PhaseDefinition phaseDefinition;
-	@NonNull private PhaseDefinitionProcessor processor;
-	@Getter private List<ExecutionNode> childNodes = new ArrayList<>();
+	@NonNull
+	private PhaseDefinition phaseDefinition;
+	@NonNull
+	private PhaseDefinitionProcessor processor;
+	@Getter
+	private List<ExecutionNode> childNodes = new ArrayList<>();
 
 	public void addChildNode(ExecutionNode node) {
 		childNodes.add(node);
@@ -87,7 +94,7 @@ public class ExecutionNode {
 					}
 
 					for (List<Object> paramList : createCartesianProduct(paramInstances)) {
-						phaseDefinition.getMethod().invoke(phaseDefinition.getJob(), paramList.toArray());
+						invokeMethod(phaseDefinition.getMethod(), paramList.toArray());
 					}
 				}
 			}
@@ -125,5 +132,16 @@ public class ExecutionNode {
 			}
 		}
 		return resultLists;
+	}
+
+	private void invokeMethod(Method method, Object[] params) throws Exception {
+		final List ctxs = InstanceRegistry.get(Context.class);
+		if (!ctxs.isEmpty()) {
+			final Context ctx = (Context) ctxs.get(0);
+			final PropertyAnnotationProcessor resolver = new PropertyAnnotationProcessor(ctx);
+			method.invoke(phaseDefinition.getJob(), resolver.process(method, params));
+		} else {
+			method.invoke(phaseDefinition.getJob(), params);
+		}
 	}
 }

@@ -1,4 +1,4 @@
-package org.jboss.qa.phaser;
+package org.jboss.qa.phaser.point;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

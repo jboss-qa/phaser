@@ -1,15 +1,21 @@
-package org.jboss.qa.phaser;
+package org.jboss.qa.phaser.job;
 
+import org.jboss.qa.phaser.AfterJob;
+import org.jboss.qa.phaser.BeforeJob;
+import org.jboss.qa.phaser.InstanceRegistry;
+import org.jboss.qa.phaser.RunAlways;
 import org.jboss.qa.phaser.phase.main.Main;
 import org.jboss.qa.phaser.phase.main.MainWrapper;
 import org.jboss.qa.phaser.phase.third.Third;
+import org.jboss.qa.phaser.point.InjectionPoint;
+import org.jboss.qa.phaser.point.MyPoint;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @MainWrapper({
 		@Main(id = "Main#1"),
-		@Main(id = "Main#2", order = -1),
+		@Main(id = "Main#2", order = -1)
 })
 public class ParentJob {
 

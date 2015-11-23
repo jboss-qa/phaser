@@ -67,6 +67,11 @@ public final class InstanceRegistry {
 		return instances == null ? Collections.emptyList() : instances;
 	}
 
+	public static void reset() {
+		namedInstances = new HashMap<>();
+		typedInstances = new HashMap<>();
+	}
+
 	private InstanceRegistry() {
 	}
 }
