@@ -106,7 +106,7 @@ public class Executor {
 							@Override
 							public Object invoke(Object o, Method method, Object[] args) throws Throwable {
 								if (StringUtils.isNotEmpty(inject.id())) {
-									return method.invoke(InstanceRegistry.get(inject.id(), type));
+									return method.invoke(InstanceRegistry.get(inject.id(), type), args);
 								}
 
 								final List<Object> instances = InstanceRegistry.get(type);
