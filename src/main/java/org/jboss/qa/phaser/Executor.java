@@ -17,6 +17,9 @@ package org.jboss.qa.phaser;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.jboss.qa.phaser.context.Context;
+import org.jboss.qa.phaser.context.PropertyAnnotationProcessor;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -37,6 +40,7 @@ public class Executor {
 	public Executor(List<Object> jobs, List<ExecutionNode> roots) throws Exception {
 		this.jobs = jobs;
 		this.roots = roots;
+		injectProperties();
 		injectFields();
 	}
 
@@ -86,6 +90,19 @@ public class Executor {
 					m.invoke(job);
 				}
 			}
+		}
+	}
+
+	private void injectProperties() throws Exception {
+		final List ctxs = InstanceRegistry.get(Context.class);
+		if (ctxs.isEmpty()) {
+			log.warn("Property injection is not activated. You can activate it by adding context into instance registry");
+			return;
+		}
+		final Context context = (Context) ctxs.get(0);
+		final PropertyAnnotationProcessor resolver = new PropertyAnnotationProcessor(context);
+		for (final Object job : jobs) {
+			resolver.process(job);
 		}
 	}
 

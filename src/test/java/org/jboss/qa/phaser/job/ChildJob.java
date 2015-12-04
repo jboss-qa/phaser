@@ -1,6 +1,15 @@
-package org.jboss.qa.phaser;
+package org.jboss.qa.phaser.job;
 
+import org.jboss.qa.phaser.AfterJob;
+import org.jboss.qa.phaser.BeforeJob;
+import org.jboss.qa.phaser.Create;
+import org.jboss.qa.phaser.ExceptionHandling;
+import org.jboss.qa.phaser.Inject;
+import org.jboss.qa.phaser.OnException;
 import org.jboss.qa.phaser.phase.second.Second;
+import org.jboss.qa.phaser.point.AbstractInjectionPoint;
+import org.jboss.qa.phaser.point.InjectionPoint;
+import org.jboss.qa.phaser.point.MyPoint;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,10 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ChildJob {
 
 	@Inject(id = "IP1")
-	public InjectionPoint ip1;
+	protected InjectionPoint ip1;
 
 	@Inject
-	public AbstractInjectionPoint ip2;
+	protected AbstractInjectionPoint ip2;
 
 	@BeforeJob
 	public void beforeJob() {
