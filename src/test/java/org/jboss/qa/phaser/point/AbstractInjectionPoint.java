@@ -1,4 +1,4 @@
-package org.jboss.qa.phaser;
+package org.jboss.qa.phaser.point;
 
 public abstract class AbstractInjectionPoint {
 

@@ -1,8 +1,15 @@
-package org.jboss.qa.phaser;
+package org.jboss.qa.phaser.job;
 
+import org.jboss.qa.phaser.AfterJob;
+import org.jboss.qa.phaser.BeforeJob;
+import org.jboss.qa.phaser.Inject;
+import org.jboss.qa.phaser.RunAlways;
 import org.jboss.qa.phaser.phase.main.Main;
 import org.jboss.qa.phaser.phase.main.MainWrapper;
 import org.jboss.qa.phaser.phase.third.Third;
+import org.jboss.qa.phaser.point.InjectionPoint;
+import org.jboss.qa.phaser.point.MyPoint;
+import org.jboss.qa.phaser.registry.InstanceRegistry;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,12 +20,15 @@ import lombok.extern.slf4j.Slf4j;
 })
 public class ParentJob {
 
+	@Inject
+	private InstanceRegistry registry;
+
 	@BeforeJob
 	public void beforeJob() {
 		log.info("BEFORE JOB PARENT");
 
-		InstanceRegistry.insert("IP1", new InjectionPoint("IP3"));
-		InstanceRegistry.insert(new MyPoint("MyPoint Content"));
+		registry.insert("IP1", new InjectionPoint("IP3"));
+		registry.insert(new MyPoint("MyPoint Content"));
 	}
 
 	@RunAlways

@@ -1,6 +1,15 @@
-package org.jboss.qa.phaser;
+package org.jboss.qa.phaser.job;
 
+import org.jboss.qa.phaser.AfterJob;
+import org.jboss.qa.phaser.BeforeJob;
+import org.jboss.qa.phaser.Create;
+import org.jboss.qa.phaser.ExceptionHandling;
+import org.jboss.qa.phaser.Inject;
+import org.jboss.qa.phaser.OnException;
 import org.jboss.qa.phaser.phase.second.Second;
+import org.jboss.qa.phaser.point.AbstractInjectionPoint;
+import org.jboss.qa.phaser.point.InjectionPoint;
+import org.jboss.qa.phaser.point.MyPoint;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,11 +31,6 @@ public class ChildJob {
 	@OnException(execution = ExceptionHandling.Execution.FINALIZE, report = ExceptionHandling.Report.LOG)
 	public void scpA(InjectionPoint ipLocal, @Create MyPoint mpLocal) throws Exception {
 		log.info("Second[ID=Second#1, mainRef=Main#1, order=0]");
-		log.info("EXC WILL BE THROWN");
-
-		if (true) {
-			//throw new Exception("Test Exception!");
-		}
 
 		log.info("InjectionPoint: {}", ip1.getContent());
 		log.info("AbstractInjectionPoint: {}", ip2.getContent());
