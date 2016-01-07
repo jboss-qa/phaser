@@ -15,56 +15,36 @@
  */
 package org.jboss.qa.phaser;
 
-import org.apache.commons.lang3.ClassUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Old style static instace registry.
+ *
+ * @deprecated use {@link org.jboss.qa.phaser.registry.InstanceRegistry} instead.
+ */
+@Deprecated
 public final class InstanceRegistry {
 
-	private static Map<String, Object> namedInstances = new HashMap<>();
-	private static Map<Class<?>, List<Object>> typedInstances = new HashMap<>();
+	private static volatile org.jboss.qa.phaser.registry.InstanceRegistry registry = null;
 
-	public static void insert(Object o) {
-		insert(o, o.getClass());
-		insert(o, ClassUtils.getAllInterfaces(o.getClass()));
-		insert(o, ClassUtils.getAllSuperclasses(o.getClass()));
+	public static synchronized void insert(Object o) {
+		registry.insert(o);
 	}
 
-	private static void insert(Object o, List<Class<?>> classes) {
-		for (Class<?> c : classes) {
-			insert(o, c);
-		}
+	public static synchronized void insert(String id, Object o) {
+		registry.insert(id, o);
 	}
 
-	private static void insert(Object o, Class<?> c) {
-		List<Object> instances = typedInstances.get(c);
-		if (instances == null) {
-			instances = new ArrayList<>();
-			typedInstances.put(c, instances);
-		}
-		instances.add(o);
+	public static synchronized Object get(String id, Class<?> clazz) {
+		return registry.get(id, clazz);
 	}
 
-	public static void insert(String id, Object o) {
-		namedInstances.put(id, o);
-		insert(o);
+	public static synchronized List<Object> get(Class<?> clazz) {
+		return (List<Object>) registry.get(clazz);
 	}
 
-	public static Object get(String id, Class<?> clazz) {
-		final Object o = namedInstances.get(id);
-		if (o != null && clazz.isAssignableFrom(o.getClass())) {
-			return o;
-		}
-		return null;
-	}
-
-	public static List<Object> get(Class<?> clazz) {
-		final List<Object> instances = typedInstances.get(clazz);
-		return instances == null ? Collections.emptyList() : instances;
+	public static synchronized void setRegistry(org.jboss.qa.phaser.registry.InstanceRegistry r) {
+		registry = r;
 	}
 
 	private InstanceRegistry() {

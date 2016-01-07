@@ -1,5 +1,6 @@
 package org.jboss.qa.phaser;
 
+import org.jboss.qa.phaser.job.TestJob;
 import org.jboss.qa.phaser.phase.main.MainPhase;
 import org.jboss.qa.phaser.phase.second.SecondPhase;
 import org.jboss.qa.phaser.phase.third.ThirdPhase;

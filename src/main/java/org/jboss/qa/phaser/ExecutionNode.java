@@ -17,10 +17,13 @@ package org.jboss.qa.phaser;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.jboss.qa.phaser.registry.InstanceRegistry;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.Getter;
@@ -30,9 +33,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ExecutionNode {
 
-	@NonNull private PhaseDefinition phaseDefinition;
-	@NonNull private PhaseDefinitionProcessor processor;
-	@Getter private List<ExecutionNode> childNodes = new ArrayList<>();
+	@NonNull
+	private PhaseDefinition phaseDefinition;
+	@NonNull
+	private PhaseDefinitionProcessor processor;
+	@Getter
+	private List<ExecutionNode> childNodes = new ArrayList<>();
 
 	public void addChildNode(ExecutionNode node) {
 		childNodes.add(node);
@@ -42,7 +48,7 @@ public class ExecutionNode {
 		childNodes.addAll(nodes);
 	}
 
-	public ExecutionError execute(boolean finalize) {
+	public ExecutionError execute(boolean finalize, org.jboss.qa.phaser.registry.InstanceRegistry register) {
 
 		// finalizing state, skip non run always methods
 		if (finalize && !phaseDefinition.isRunAlways()) {
@@ -67,12 +73,15 @@ public class ExecutionNode {
 						boolean created = false;
 						for (int j = 0; j < paramAnnotations[i].length; j++) {
 							if (paramAnnotations[i][j] instanceof Create) { // Create instance for @Create params
+								if (paramClasses[i].isAssignableFrom(InstanceRegistry.class)) {
+									throw new IllegalStateException("Can not use @Create annotation for InstanceRegistry");
+								}
 								final Create create = (Create) paramAnnotations[i][j];
 								final Object o = paramClasses[i].newInstance();
 								if (StringUtils.isNotEmpty(create.id())) {
-									InstanceRegistry.insert(create.id(), o);
+									register.insert(create.id(), o);
 								} else {
-									InstanceRegistry.insert(o);
+									register.insert(o);
 								}
 								// Add created instance as unique instance of parameter
 								final List<Object> ip = new ArrayList<>();
@@ -82,7 +91,11 @@ public class ExecutionNode {
 							}
 						}
 						if (!created) { // Find all existing instances
-							paramInstances.add(InstanceRegistry.get(paramClasses[i]));
+							if (paramClasses[i].isAssignableFrom(InstanceRegistry.class)) {
+								paramInstances.add(Collections.singletonList((Object) register));
+							} else {
+								paramInstances.add((List<Object>) register.get(paramClasses[i]));
+							}
 						}
 					}
 

@@ -33,10 +33,12 @@ public class Executor {
 
 	private List<Object> jobs;
 	private List<ExecutionNode> roots;
+	private org.jboss.qa.phaser.registry.InstanceRegistry register;
 
-	public Executor(List<Object> jobs, List<ExecutionNode> roots) throws Exception {
+	public Executor(List<Object> jobs, List<ExecutionNode> roots, org.jboss.qa.phaser.registry.InstanceRegistry register) throws Exception {
 		this.jobs = jobs;
 		this.roots = roots;
+		this.register = register;
 		injectFields();
 	}
 
@@ -49,7 +51,7 @@ public class Executor {
 		while (!nodeQueue.isEmpty()) {
 			final ExecutionNode node = nodeQueue.poll();
 
-			final ExecutionError err = node.execute(finalizeState);
+			final ExecutionError err = node.execute(finalizeState, register);
 
 			if (err != null) {
 				final ExceptionHandling eh = err.getExceptionHandling();
@@ -105,11 +107,15 @@ public class Executor {
 
 							@Override
 							public Object invoke(Object o, Method method, Object[] args) throws Throwable {
-								if (StringUtils.isNotEmpty(inject.id())) {
-									return method.invoke(InstanceRegistry.get(inject.id(), type), args);
+								if (type.isAssignableFrom(org.jboss.qa.phaser.registry.InstanceRegistry.class)) {
+									return method.invoke(register, args);
 								}
 
-								final List<Object> instances = InstanceRegistry.get(type);
+								if (StringUtils.isNotEmpty(inject.id())) {
+									return method.invoke(register.get(inject.id(), type), args);
+								}
+
+								final List<?> instances = register.get(type);
 								if (instances.size() == 1) {
 									return method.invoke(instances.get(0), args);
 								} else if (instances.size() > 1) {

@@ -15,6 +15,9 @@
  */
 package org.jboss.qa.phaser;
 
+import org.jboss.qa.phaser.registry.InstanceRegistry;
+import org.jboss.qa.phaser.registry.SimpleInstanceRegistry;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +36,12 @@ public class Phaser {
 	}
 
 	public void run() throws Exception {
+		run(new SimpleInstanceRegistry());
+	}
+
+	public void run(InstanceRegistry register) throws Exception {
+		org.jboss.qa.phaser.InstanceRegistry.setRegistry(register);
 		final List<ExecutionNode> executions = phaseTree.validate().buildPhaseDefinitions(jobs).buildExecutionTree();
-		new Executor(jobs, executions).execute();
+		new Executor(jobs, executions, register).execute();
 	}
 }
