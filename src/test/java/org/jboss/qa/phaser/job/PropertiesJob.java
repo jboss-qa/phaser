@@ -8,6 +8,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 import org.jboss.qa.phaser.BeforeJob;
+import org.jboss.qa.phaser.Inject;
 import org.jboss.qa.phaser.context.Context;
 import org.jboss.qa.phaser.context.Property;
 import org.jboss.qa.phaser.phase.main.Main;
@@ -64,5 +65,7 @@ public class PropertiesJob {
 
 		assertEquals(url, new URL("https://github.com/jboss-soa-qa/phaser"));
 		assertNotNull(ctx);
+
+		ctx.set("scpB", true);
 	}
 }

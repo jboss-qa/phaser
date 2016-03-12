@@ -8,6 +8,7 @@ import org.jboss.qa.phaser.phase.second.SecondPhase;
 import org.jboss.qa.phaser.phase.third.ThirdPhase;
 import org.jboss.qa.phaser.registry.SimpleInstanceRegistry;
 
+import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -47,6 +48,8 @@ public class ContextTest {
 		final PhaseTreeBuilder builder = new PhaseTreeBuilder();
 		builder.addPhase(dp).next().addPhase(scp).next().addPhase(thp);
 		new Phaser(builder.build(), PropertiesJob.class.newInstance()).run(registry);
+
+		Assert.assertTrue(ctx.get("scpB", Boolean.class));
 	}
 
 	@Test(expectedExceptions = InvocationTargetException.class)

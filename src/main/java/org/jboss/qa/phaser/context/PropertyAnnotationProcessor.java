@@ -15,11 +15,13 @@
  */
 package org.jboss.qa.phaser.context;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import org.jboss.qa.phaser.processors.FieldProcessor;
+import org.jboss.qa.phaser.processors.ParameterProcessor;
 
-public class PropertyAnnotationProcessor {
+import java.util.Collections;
+import java.util.List;
+
+public class PropertyAnnotationProcessor implements ParameterProcessor<Property>, FieldProcessor<Property> {
 
 	private Context context;
 
@@ -27,45 +29,28 @@ public class PropertyAnnotationProcessor {
 		this.context = context;
 	}
 
-	public void process(Object job) throws IllegalAccessException {
-		Class<?> current = job.getClass();
-		while (current.getSuperclass() != null) {
-			for (final Field field : current.getDeclaredFields()) {
-				final Property inject = field.getAnnotation(Property.class);
-
-				if (inject != null) {
-					final Class<?> type = field.getType();
-					field.setAccessible(true);
-					final Object value = context.get(inject.value(), type);
-					if (value != null) {
-						field.set(job, value);
-					} else {
-						context.set(inject.value(), field.get(job), type);
-					}
-				}
-			}
-			current = current.getSuperclass();
-		}
+	@Override
+	public Object processField(Class clazz, Property annotation) {
+		return context.get(annotation.value(), clazz);
 	}
 
-	public Object[] process(Method method, Object[] params) {
-		final Class<?>[] paramClasses = method.getParameterTypes();
-		final Annotation[][] paramAnnotations = method.getParameterAnnotations();
-		if (params == null) {
-			params = new Object[paramClasses.length];
+	@Override
+	public Object processField(Class clazz, Property annotation, Object value) {
+		final Object ctxValue = processField(clazz, annotation);
+		if (ctxValue == null) {
+			context.set(annotation.value(), value, clazz);
+			return value;
 		}
-		if (params.length != paramClasses.length) {
-			throw new IllegalStateException();
-		}
-		for (int i = 0; i < paramClasses.length; i++) {
-			for (int j = 0; j < paramAnnotations[i].length; j++) {
-				if (paramAnnotations[i][j] instanceof Property && params[i] == null) {
-					final Property property = (Property) paramAnnotations[i][j];
-					final Object o = context.get(property.value(), paramClasses[i]);
-					params[i] = o;
-				}
-			}
-		}
-		return params;
+		return ctxValue;
+	}
+
+	@Override
+	public List<Object> processParameter(Class clazz, Property annotation) {
+		return Collections.singletonList(context.get(annotation.value(), clazz));
+	}
+
+	@Override
+	public Class<Property> getAnnotationClass() {
+		return Property.class;
 	}
 }
