@@ -58,14 +58,12 @@ public class PropertiesJob {
 	}
 
 	@Second(id = "Second#2", order = 2)
-	public void scpB(@Property("url") URL url, Context ctx) throws MalformedURLException {
+	public void scpB(@Property("url") URL urlParam, Context ctx) throws MalformedURLException {
 		log.info("Second[ID=Second#2, mainRef=null, order=2]");
-		log.info("URL property: {}", url);
+		log.info("URL property: {}", urlParam);
 		log.info("Context object: {}", ctx);
 
-		assertEquals(url, new URL("https://github.com/jboss-soa-qa/phaser"));
+		assertEquals(urlParam, new URL("https://github.com/jboss-soa-qa/phaser"));
 		assertNotNull(ctx);
-
-		ctx.set("scpB", true);
 	}
 }
