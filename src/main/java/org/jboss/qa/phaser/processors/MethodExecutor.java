@@ -51,21 +51,21 @@ public class MethodExecutor {
 			params.ensureCapacity(paramClasses.length);
 
 			for (int i = 0; i < paramClasses.length; i++) {
+				List<Object> param = Collections.emptyList();
 				for (int j = 0; j < paramAnnotations[i].length; j++) {
 					final Annotation annotation = paramAnnotations[i][j];
 					for (ParameterProcessor processor : processors) {
 						if (processor.getAnnotationClass().isAssignableFrom(annotation.getClass())) {
-							params.add(i, processor.processParameter(paramClasses[i], annotation));
+							param = processor.processParameter(paramClasses[i], annotation);
 						}
 					}
 				}
 				if (paramAnnotations[i].length == 0) {
 					if (defaultProcessor != null) {
-						params.add(i, defaultProcessor.processParameter(paramClasses[i], null));
-					} else {
-						params.add(Collections.emptyList());
+						param = defaultProcessor.processParameter(paramClasses[i], null);
 					}
 				}
+				params.add(param);
 			}
 
 			for (List<Object> methodParams : createCartesianProduct(params)) {

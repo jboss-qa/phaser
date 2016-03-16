@@ -89,6 +89,13 @@ public class TestJob {
 		Assert.assertTrue("This phase should be skipped!", false);
 	}
 
+	@RunAlways
+	@Second(id="Second#3", order = 2, main = "Main#2")
+	public void scpC(@Inject(id = "IP1") InjectionPoint myPoint){
+		log.info("Second[ID=Second#3, mainRef=null, order=2]");
+		log.info("InjectionPoint: {}", myPoint.getContent());
+	}
+
 	@AfterJob
 	public void afterJobA() {
 		log.info("AFTER JOB #1");

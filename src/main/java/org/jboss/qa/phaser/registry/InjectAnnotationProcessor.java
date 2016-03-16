@@ -80,7 +80,7 @@ public class InjectAnnotationProcessor implements FieldProcessor<Inject>, Parame
 		if (clazz.isAssignableFrom(InstanceRegistry.class)) {
 			return Collections.singletonList((Object) register);
 		}
-		if (annotation != null) {
+		if (annotation != null && !annotation.id().isEmpty()) {
 			return Collections.singletonList(register.get(annotation.id(), clazz));
 		}
 		return register.get(clazz);

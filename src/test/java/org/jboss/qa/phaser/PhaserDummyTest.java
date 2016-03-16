@@ -39,6 +39,7 @@ public class PhaserDummyTest {
 
 		verify(mock, times(1)).scpB(any(MyPoint.class));
 		verify(mock, times(1)).scpA(any(InjectionPoint.class), any(MyPoint.class));
+		verify(mock, times(1)).scpC(any(InjectionPoint.class));
 
 		verify(mock, times(2)).thpA(any(MyPoint.class));
 		verify(mock, never()).thpC();

@@ -1,6 +1,8 @@
 package org.jboss.qa.phaser;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -58,6 +60,7 @@ public class ContextTest {
 
 		verify(mock, times(1)).beforeJobA();
 		verify(mock, times(1)).scpB(new URL("https://github.com/jboss-soa-qa/phaser"), ctx);
+		verify(mock, never()).scpC(any(CharSequence.class));
 	}
 
 	@Test(expectedExceptions = InvocationTargetException.class)
@@ -72,5 +75,25 @@ public class ContextTest {
 		final PhaseTreeBuilder builder = new PhaseTreeBuilder();
 		builder.addPhase(dp).next().addPhase(scp).next().addPhase(thp);
 		new Phaser(builder.build(), proxy).run();
+	}
+
+	@Test
+	public void testInjectAndPropertyAnnotation() throws Exception {
+		final PropertiesJob mock = mock(PropertiesJob.class);
+		final PropertiesJob proxy = SpyProxyFactory.createProxy(PropertiesJob.class, mock);
+
+		final SimpleInstanceRegistry registry = new SimpleInstanceRegistry();
+		registry.insert(ctx);
+		registry.insert(new String("cdi"));
+
+		final MainPhase dp = new MainPhase();
+		final SecondPhase scp = new SecondPhase();
+		final ThirdPhase thp = new ThirdPhase();
+
+		final PhaseTreeBuilder builder = new PhaseTreeBuilder();
+		builder.addPhase(dp).next().addPhase(scp).next().addPhase(thp);
+		new Phaser(builder.build(), proxy).run(registry);
+
+		verify(mock, times(1)).scpC(new String("cdi"));
 	}
 }

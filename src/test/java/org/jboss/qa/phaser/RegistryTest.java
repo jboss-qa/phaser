@@ -1,6 +1,9 @@
 package org.jboss.qa.phaser;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.refEq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -17,6 +20,8 @@ import org.jboss.qa.phaser.registry.InstanceRegistry;
 import org.jboss.qa.phaser.registry.SimpleInstanceRegistry;
 import org.jboss.qa.phaser.tools.SpyProxyFactory;
 
+import org.hamcrest.generator.HamcrestFactoryWriter;
+import org.mockito.Matchers;
 import org.mockito.verification.VerificationMode;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -98,6 +103,7 @@ public class RegistryTest {
 			VerificationMode thbB, VerificationMode thpC) throws Exception {
 		verify(mock, scpB).scpB(any(MyPoint.class));
 		verify(mock, scpA).scpA(any(InjectionPoint.class), any(MyPoint.class));
+		verify(mock, times(1)).scpC(any(InjectionPoint.class));
 
 		verify(mock, thpA).thpA(any(MyPoint.class));
 		verify(mock, thpC).thpC();
