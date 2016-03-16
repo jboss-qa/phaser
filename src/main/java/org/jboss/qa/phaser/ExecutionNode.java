@@ -15,18 +15,16 @@
  */
 package org.jboss.qa.phaser;
 
-import org.apache.commons.lang3.StringUtils;
-
 import org.jboss.qa.phaser.context.Context;
 import org.jboss.qa.phaser.context.PropertyAnnotationProcessor;
-import org.jboss.qa.phaser.registry.InstanceRegistry;
+import org.jboss.qa.phaser.processors.MethodExecutor;
+import org.jboss.qa.phaser.registry.CreateAnnotationProcessor;
+import org.jboss.qa.phaser.registry.InjectAnnotationProcessor;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import lombok.Getter;
@@ -63,49 +61,18 @@ public class ExecutionNode {
 			processor.execute();
 
 			// If phase definition has method, invoke it
-			if (phaseDefinition.getMethod() != null) {
-
-				final Class<?>[] paramClasses = phaseDefinition.getMethod().getParameterTypes();
-				final Annotation[][] paramAnnotations = phaseDefinition.getMethod().getParameterAnnotations();
-
-				if (paramClasses.length == 0) { // no parameters to inject
-					phaseDefinition.getMethod().invoke(phaseDefinition.getJob());
-				} else {
-					final List<List<Object>> paramInstances = new ArrayList<>();
-					for (int i = 0; i < paramClasses.length; i++) {
-						boolean created = false;
-						for (int j = 0; j < paramAnnotations[i].length; j++) {
-							if (paramAnnotations[i][j] instanceof Create) { // Create instance for @Create params
-								if (paramClasses[i].isAssignableFrom(InstanceRegistry.class)) {
-									throw new IllegalStateException("Can not use @Create annotation for InstanceRegistry");
-								}
-								final Create create = (Create) paramAnnotations[i][j];
-								final Object o = paramClasses[i].newInstance();
-								if (StringUtils.isNotEmpty(create.id())) {
-									register.insert(create.id(), o);
-								} else {
-									register.insert(o);
-								}
-								// Add created instance as unique instance of parameter
-								final List<Object> ip = new ArrayList<>();
-								ip.add(o);
-								paramInstances.add(ip);
-								created = true;
-							}
-						}
-						if (!created) { // Find all existing instances
-							if (paramClasses[i].isAssignableFrom(InstanceRegistry.class)) {
-								paramInstances.add(Collections.singletonList((Object) register));
-							} else {
-								paramInstances.add((List<Object>) register.get(paramClasses[i]));
-							}
-						}
-					}
-
-					for (List<Object> paramList : createCartesianProduct(paramInstances)) {
-						invokeMethod(phaseDefinition.getMethod(), paramList.toArray(), register);
-					}
+			final Method method = phaseDefinition.getMethod();
+			if (method != null) {
+				final Class<?>[] paramClasses = method.getParameterTypes();
+				final MethodExecutor.MethodExecutorBuilder builder = MethodExecutor.builder()
+						.processor(new CreateAnnotationProcessor(register))
+						.processor(new InjectAnnotationProcessor(register))
+						.defaultProcessor(new InjectAnnotationProcessor(register));
+				final List<Context> ctxs = register.get(Context.class);
+				if (!ctxs.isEmpty()) {
+					builder.processor(new PropertyAnnotationProcessor(ctxs.get(0)));
 				}
+				builder.build().invokeMethod(method, phaseDefinition.getJob());
 			}
 			return null; // ok, no exception
 		} catch (InvocationTargetException e) {
@@ -120,37 +87,5 @@ public class ExecutionNode {
 			return processor.handleException(phaseDefinition.getExceptionHandling(), t);
 		}
 		return processor.handleException(t);
-	}
-
-	// TODO(vchalupa): Move to utils or use some util library
-	private static List<List<Object>> createCartesianProduct(List<List<Object>> lists) {
-		final List<List<Object>> resultLists = new ArrayList<>();
-		if (lists.size() == 0) {
-			resultLists.add(new ArrayList<>());
-			return resultLists;
-		} else {
-			final List<Object> firstList = lists.get(0);
-			final List<List<Object>> remainingLists = createCartesianProduct(lists.subList(1, lists.size()));
-			for (Object condition : firstList) {
-				for (List<Object> remainingList : remainingLists) {
-					final ArrayList<Object> resultList = new ArrayList<>();
-					resultList.add(condition);
-					resultList.addAll(remainingList);
-					resultLists.add(resultList);
-				}
-			}
-		}
-		return resultLists;
-	}
-
-	private void invokeMethod(Method method, Object[] params, org.jboss.qa.phaser.registry.InstanceRegistry register) throws Exception {
-		final List ctxs = register.get(Context.class);
-		if (!ctxs.isEmpty()) {
-			final Context ctx = (Context) ctxs.get(0);
-			final PropertyAnnotationProcessor resolver = new PropertyAnnotationProcessor(ctx);
-			method.invoke(phaseDefinition.getJob(), resolver.process(method, params));
-		} else {
-			method.invoke(phaseDefinition.getJob(), params);
-		}
 	}
 }

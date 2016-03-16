@@ -3,11 +3,11 @@ package org.jboss.qa.phaser.job;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 import org.jboss.qa.phaser.BeforeJob;
+import org.jboss.qa.phaser.Inject;
 import org.jboss.qa.phaser.context.Context;
 import org.jboss.qa.phaser.context.Property;
 import org.jboss.qa.phaser.phase.main.Main;
@@ -57,12 +57,18 @@ public class PropertiesJob {
 	}
 
 	@Second(id = "Second#2", order = 2)
-	public void scpB(@Property("url") URL url, Context ctx) throws MalformedURLException {
+	public void scpB(@Property("url") URL urlParam, Context ctx) throws MalformedURLException {
 		log.info("Second[ID=Second#2, mainRef=null, order=2]");
-		log.info("URL property: {}", url);
+		log.info("URL property: {}", urlParam);
 		log.info("Context object: {}", ctx);
 
-		assertEquals(url, new URL("https://github.com/jboss-soa-qa/phaser"));
+		assertEquals(urlParam, new URL("https://github.com/jboss-soa-qa/phaser"));
 		assertNotNull(ctx);
+	}
+
+	@Second(id = "Second#3", order = 3)
+	public void scpC(@Property("property1") @Inject CharSequence prop) {
+		log.info("Second[ID=Second#3, mainRef=null, order=3]");
+		log.info("CharSequence property: {}", prop);
 	}
 }

@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jboss.qa.phaser;
+package org.jboss.qa.phaser.processors;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.Annotation;
+import java.util.List;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.PARAMETER})
-public @interface Inject {
-
-	String id() default "";
+public interface ParameterProcessor<T extends Annotation> extends AnnotationProcessor<T> {
+	List<Object> processParameter(Class clazz, T annotation);
 }

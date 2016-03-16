@@ -15,21 +15,18 @@
  */
 package org.jboss.qa.phaser;
 
-import org.apache.commons.lang3.StringUtils;
-
 import org.jboss.qa.phaser.context.Context;
 import org.jboss.qa.phaser.context.PropertyAnnotationProcessor;
+import org.jboss.qa.phaser.processors.CdiExecutor;
+import org.jboss.qa.phaser.registry.InjectAnnotationProcessor;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.InvocationHandler;
 
 @Slf4j
 public class Executor {
@@ -42,7 +39,6 @@ public class Executor {
 		this.jobs = jobs;
 		this.roots = roots;
 		this.register = register;
-		injectProperties();
 		injectFields();
 	}
 
@@ -95,62 +91,19 @@ public class Executor {
 		}
 	}
 
-	private void injectProperties() throws Exception {
-		final List ctxs = register.get(Context.class);
-		if (ctxs.isEmpty()) {
-			log.warn("Property injection is not activated. You can activate it by adding context into instance registry");
-			return;
-		}
-		final Context context = (Context) ctxs.get(0);
-		final PropertyAnnotationProcessor resolver = new PropertyAnnotationProcessor(context);
-		for (final Object job : jobs) {
-			resolver.process(job);
-		}
-	}
-
 	private void injectFields() throws Exception {
+		final CdiExecutor.CdiExecutorBuilder cdiExecutorBuilder = CdiExecutor.builder();
+
+		final List<Context> ctxs = register.get(Context.class);
+		if (!ctxs.isEmpty()) {
+			cdiExecutorBuilder.processor(new PropertyAnnotationProcessor(ctxs.get(0)));
+		} else {
+			log.warn("Property injection is not activated. You can activate it by adding context into instance registry");
+		}
+		final CdiExecutor cdiExecutor = cdiExecutorBuilder.processor(new InjectAnnotationProcessor(register)).build();
+
 		for (final Object job : jobs) {
-			Class<?> current = job.getClass();
-			while (current.getSuperclass() != null) {
-				for (final Field field : current.getDeclaredFields()) {
-					final Inject inject = field.getAnnotation(Inject.class);
-
-					if (inject != null) {
-						final Class<?> type = field.getType();
-
-						final Enhancer enhancer = new Enhancer();
-						enhancer.setSuperclass(type);
-						enhancer.setCallback(new InvocationHandler() {
-
-							@Override
-							public Object invoke(Object o, Method method, Object[] args) throws Throwable {
-								if (type.isAssignableFrom(org.jboss.qa.phaser.registry.InstanceRegistry.class)) {
-									return method.invoke(register, args);
-								}
-
-								if (StringUtils.isNotEmpty(inject.id())) {
-									return method.invoke(register.get(inject.id(), type), args);
-								}
-
-								final List<?> instances = register.get(type);
-								if (instances.size() == 1) {
-									return method.invoke(instances.get(0), args);
-								} else if (instances.size() > 1) {
-									log.warn("Can not inject {} in {}: more instances existing", field.getName(), job.getClass().getCanonicalName());
-								}
-
-								return method.invoke(null, args);
-							}
-						});
-
-						log.debug("Creating proxy for {}", field.getName());
-						field.setAccessible(true);
-						// TODO(vchalupa): check and properly log final classes and classes without default constructor
-						field.set(job, enhancer.create());
-					}
-				}
-				current = current.getSuperclass();
-			}
+			cdiExecutor.inject(job);
 		}
 	}
 }
