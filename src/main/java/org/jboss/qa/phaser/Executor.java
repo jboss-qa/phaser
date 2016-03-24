@@ -15,10 +15,7 @@
  */
 package org.jboss.qa.phaser;
 
-import org.jboss.qa.phaser.context.Context;
-import org.jboss.qa.phaser.context.PropertyAnnotationProcessor;
-import org.jboss.qa.phaser.processors.CdiExecutor;
-import org.jboss.qa.phaser.registry.InjectAnnotationProcessor;
+import org.jboss.qa.phaser.registry.InstanceRegistry;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -33,13 +30,13 @@ public class Executor {
 
 	private List<Object> jobs;
 	private List<ExecutionNode> roots;
-	private org.jboss.qa.phaser.registry.InstanceRegistry register;
+	private InstanceRegistry registry;
 
-	public Executor(List<Object> jobs, List<ExecutionNode> roots, org.jboss.qa.phaser.registry.InstanceRegistry register) throws Exception {
+	public Executor(List<Object> jobs, List<ExecutionNode> roots, InstanceRegistry registry) throws Exception {
 		this.jobs = jobs;
 		this.roots = roots;
-		this.register = register;
-		injectFields();
+		this.registry = registry;
+		Injector.injectFields(registry, jobs);
 	}
 
 	public void execute() throws Exception {
@@ -51,7 +48,7 @@ public class Executor {
 		while (!nodeQueue.isEmpty()) {
 			final ExecutionNode node = nodeQueue.poll();
 
-			final ExecutionError err = node.execute(finalizeState, register);
+			final ExecutionError err = node.execute(finalizeState, registry);
 
 			if (err != null) {
 				final ExceptionHandling eh = err.getExceptionHandling();
@@ -88,22 +85,6 @@ public class Executor {
 					m.invoke(job);
 				}
 			}
-		}
-	}
-
-	private void injectFields() throws Exception {
-		final CdiExecutor.CdiExecutorBuilder cdiExecutorBuilder = CdiExecutor.builder();
-
-		final List<Context> ctxs = register.get(Context.class);
-		if (!ctxs.isEmpty()) {
-			cdiExecutorBuilder.processor(new PropertyAnnotationProcessor(ctxs.get(0)));
-		} else {
-			log.warn("Property injection is not activated. You can activate it by adding context into instance registry");
-		}
-		final CdiExecutor cdiExecutor = cdiExecutorBuilder.processor(new InjectAnnotationProcessor(register)).build();
-
-		for (final Object job : jobs) {
-			cdiExecutor.inject(job);
 		}
 	}
 }

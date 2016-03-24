@@ -15,6 +15,8 @@
  */
 package org.jboss.qa.phaser;
 
+import org.jboss.qa.phaser.registry.InstanceRegistry;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PhaseTree {
 
-	@Getter private List<PhaseTreeNode> roots;
+	@Getter
+	private List<PhaseTreeNode> roots;
 
 	public PhaseTree validate() throws PhaseValidationException {
 		for (PhaseTreeNode root : roots) {
@@ -40,10 +43,10 @@ public class PhaseTree {
 		return this;
 	}
 
-	public List<ExecutionNode> buildExecutionTree() {
+	public List<ExecutionNode> buildExecutionTree(InstanceRegistry registry) throws Exception {
 		final List<ExecutionNode> nds = new ArrayList<>();
 		for (PhaseTreeNode root : roots) {
-			nds.addAll(root.buildExecutionTree(null));
+			nds.addAll(root.buildExecutionTree(null, registry));
 		}
 		return nds;
 	}

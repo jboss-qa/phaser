@@ -15,6 +15,8 @@
  */
 package org.jboss.qa.phaser;
 
+import org.jboss.qa.phaser.registry.InstanceRegistry;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -47,7 +49,7 @@ public class PhaseTreeNode {
 
 	public void buildPhaseDefinitions(List<Object> jobs) throws Exception {
 		phaseDefinitions = new LinkedList<>();
-		for (Object job: jobs) {
+		for (Object job : jobs) {
 			phaseDefinitions.addAll(phase.findAllDefinitions(job));
 		}
 		// sort phase definitions from all job instances
@@ -58,21 +60,22 @@ public class PhaseTreeNode {
 		}
 	}
 
-	public List<ExecutionNode> buildExecutionTree(PhaseDefinition<?> parent) {
+	public List<ExecutionNode> buildExecutionTree(PhaseDefinition<?> parent, InstanceRegistry registry) throws Exception {
 		final List<ExecutionNode> executionNodes = new LinkedList<>();
 
 		if (phaseDefinitions.isEmpty()) {
 			// no phase definition for current phase, skip and process child nodes
 			for (PhaseTreeNode node : childNodes) {
-				executionNodes.addAll(node.buildExecutionTree(null)); // no parent ID
+				executionNodes.addAll(node.buildExecutionTree(null, registry)); // no parent ID
 			}
 		} else {
 			for (PhaseDefinition pd : phaseDefinitions) {
 				if (isAcceptable(parent, pd)) {
-					final ExecutionNode executionNode = new ExecutionNode(
-							pd, phase.getPhaseDefinitionBuilder().buildProcessor(pd.getAnnotation(), pd.getMethod()));
+					final PhaseDefinitionProcessor p = phase.getPhaseDefinitionBuilder().buildProcessor(pd.getAnnotation(), pd.getMethod());
+					Injector.injectFields(registry, p);
+					final ExecutionNode executionNode = new ExecutionNode(pd, p);
 					for (PhaseTreeNode node : childNodes) {
-						executionNode.addChildNodes(node.buildExecutionTree(pd));
+						executionNode.addChildNodes(node.buildExecutionTree(pd, registry));
 					}
 					executionNodes.add(executionNode);
 				}
