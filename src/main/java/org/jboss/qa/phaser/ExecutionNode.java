@@ -20,6 +20,7 @@ import org.jboss.qa.phaser.context.PropertyAnnotationProcessor;
 import org.jboss.qa.phaser.processors.MethodExecutor;
 import org.jboss.qa.phaser.registry.CreateAnnotationProcessor;
 import org.jboss.qa.phaser.registry.InjectAnnotationProcessor;
+import org.jboss.qa.phaser.registry.InstanceRegistry;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -49,7 +50,7 @@ public class ExecutionNode {
 		childNodes.addAll(nodes);
 	}
 
-	public ExecutionError execute(boolean finalize, org.jboss.qa.phaser.registry.InstanceRegistry register) {
+	public ExecutionError execute(boolean finalize, InstanceRegistry registry) {
 
 		// finalizing state, skip non run always methods
 		if (finalize && !phaseDefinition.isRunAlways()) {
@@ -65,10 +66,10 @@ public class ExecutionNode {
 			if (method != null) {
 				final Class<?>[] paramClasses = method.getParameterTypes();
 				final MethodExecutor.MethodExecutorBuilder builder = MethodExecutor.builder()
-						.processor(new CreateAnnotationProcessor(register))
-						.processor(new InjectAnnotationProcessor(register))
-						.defaultProcessor(new InjectAnnotationProcessor(register));
-				final List<Context> ctxs = register.get(Context.class);
+						.processor(new CreateAnnotationProcessor(registry))
+						.processor(new InjectAnnotationProcessor(registry))
+						.defaultProcessor(new InjectAnnotationProcessor(registry));
+				final List<Context> ctxs = registry.get(Context.class);
 				if (!ctxs.isEmpty()) {
 					builder.processor(new PropertyAnnotationProcessor(ctxs.get(0)));
 				}

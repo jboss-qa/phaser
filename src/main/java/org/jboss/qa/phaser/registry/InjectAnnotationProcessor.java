@@ -34,7 +34,7 @@ import net.sf.cglib.proxy.InvocationHandler;
 @AllArgsConstructor
 public class InjectAnnotationProcessor implements FieldProcessor<Inject>, ParameterProcessor<Inject> {
 
-	private InstanceRegistry register;
+	private InstanceRegistry registry;
 
 	@Override
 	public Object processField(final Class clazz, final Inject annotation) {
@@ -45,14 +45,14 @@ public class InjectAnnotationProcessor implements FieldProcessor<Inject>, Parame
 			@Override
 			public Object invoke(Object o, Method method, Object[] args) throws Throwable {
 				if (clazz.isAssignableFrom(org.jboss.qa.phaser.registry.InstanceRegistry.class)) {
-					return method.invoke(register, args);
+					return method.invoke(registry, args);
 				}
 
 				if (StringUtils.isNotEmpty(annotation.id())) {
-					return method.invoke(register.get(annotation.id(), clazz), args);
+					return method.invoke(registry.get(annotation.id(), clazz), args);
 				}
 
-				final List<?> instances = register.get(clazz);
+				final List<?> instances = registry.get(clazz);
 				if (instances.size() == 1) {
 					return method.invoke(instances.get(0), args);
 				} else if (instances.size() > 1) {
@@ -78,11 +78,11 @@ public class InjectAnnotationProcessor implements FieldProcessor<Inject>, Parame
 	@Override
 	public List<Object> processParameter(Class clazz, Inject annotation) {
 		if (clazz.isAssignableFrom(InstanceRegistry.class)) {
-			return Collections.singletonList((Object) register);
+			return Collections.singletonList((Object) registry);
 		}
 		if (annotation != null && !annotation.id().isEmpty()) {
-			return Collections.singletonList(register.get(annotation.id(), clazz));
+			return Collections.singletonList(registry.get(annotation.id(), clazz));
 		}
-		return register.get(clazz);
+		return registry.get(clazz);
 	}
 }

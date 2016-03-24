@@ -39,9 +39,9 @@ public class Phaser {
 		run(new SimpleInstanceRegistry());
 	}
 
-	public void run(InstanceRegistry register) throws Exception {
-		org.jboss.qa.phaser.InstanceRegistry.setRegistry(register);
-		final List<ExecutionNode> executions = phaseTree.validate().buildPhaseDefinitions(jobs).buildExecutionTree();
-		new Executor(jobs, executions, register).execute();
+	public void run(InstanceRegistry registry) throws Exception {
+		org.jboss.qa.phaser.InstanceRegistry.setRegistry(registry);
+		final List<ExecutionNode> executions = phaseTree.validate().buildPhaseDefinitions(jobs).buildExecutionTree(registry);
+		new Executor(jobs, executions, registry).execute();
 	}
 }

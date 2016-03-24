@@ -46,10 +46,10 @@ public class RegistryTest {
 	}
 
 	/**
-	 * Run two times TestJob with shared register.
+	 * Run two times TestJob with shared registry.
 	 * <p/>
 	 * Expected result for numberOfInstances is 8 because every run create 4 new instances of MyPoint.
-	 * Expected result for numberOfExecution is 5 because first run execute only once method scpB (register has one
+	 * Expected result for numberOfExecution is 5 because first run execute only once method scpB (registry has one
 	 * MyPoint bean). Second run of job execute 4 times method scpB.
 	 *
 	 * @throws Exception

@@ -28,7 +28,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class CreateAnnotationProcessor implements ParameterProcessor<Create> {
 
-	private InstanceRegistry register;
+	private InstanceRegistry registry;
 
 	@Override
 	public List<Object> processParameter(Class clazz, Create annotation) {
@@ -38,9 +38,9 @@ public class CreateAnnotationProcessor implements ParameterProcessor<Create> {
 		try {
 			final Object o = clazz.newInstance();
 			if (StringUtils.isNotEmpty(annotation.id())) {
-				register.insert(annotation.id(), o);
+				registry.insert(annotation.id(), o);
 			} else {
-				register.insert(o);
+				registry.insert(o);
 			}
 			return Collections.singletonList(o);
 		} catch (InstantiationException e) {
