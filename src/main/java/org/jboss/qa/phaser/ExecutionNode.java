@@ -21,6 +21,7 @@ import org.jboss.qa.phaser.processors.MethodExecutor;
 import org.jboss.qa.phaser.registry.CreateAnnotationProcessor;
 import org.jboss.qa.phaser.registry.InjectAnnotationProcessor;
 import org.jboss.qa.phaser.registry.InstanceRegistry;
+import org.jboss.qa.phaser.util.XmlUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -75,11 +76,20 @@ public class ExecutionNode {
 				}
 				builder.build().invokeMethod(method, phaseDefinition.getJob());
 			}
+			generateXmlReport(null);
 			return null; // ok, no exception
 		} catch (InvocationTargetException e) {
+			generateXmlReport(e);
 			return generateExecutionError(e.getCause());
 		} catch (Throwable e) {
+			generateXmlReport(e);
 			return generateExecutionError(e);
+		}
+	}
+
+	private void generateXmlReport(Throwable e) {
+		if (phaseDefinition.getGenerateReport()) {
+			XmlUtils.generateReport(e, phaseDefinition);
 		}
 	}
 

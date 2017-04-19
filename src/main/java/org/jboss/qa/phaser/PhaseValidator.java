@@ -67,10 +67,19 @@ public final class PhaseValidator {
 		}
 	}
 
+	private static void validateGenerateReportType(Phase phase) throws PhaseValidationException {
+		for (Method m : phase.getAnnotationClass().getMethods()) {
+			if (m.isAnnotationPresent(GenerateReport.class) && !m.getReturnType().equals(Boolean.class)) {
+				throw new PhaseValidationException(GenerateReport.class.getName() + " method does not return Boolean in " + phase.getAnnotationClass().getCanonicalName() + "but returns" + m.getReturnType());
+			}
+		}
+	}
+
 	public static void validate(Phase phase) throws PhaseValidationException {
 		validateIdPresence(phase);
 		validateOrderType(phase);
 		validateRunAllwaysType(phase);
+		validateGenerateReportType(phase);
 	}
 
 	private PhaseValidator() {
