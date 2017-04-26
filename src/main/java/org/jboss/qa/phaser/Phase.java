@@ -63,12 +63,16 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 			runAlways = true;
 		}
 
-		boolean generateReport = false;
-		final String reportValues = ReflectionUtils.invokeAnnotationMethod(annotation, GenerateReport.class);
-		if (reportValues != null && !reportValues.isEmpty()) {
-			generateReport = Boolean.parseBoolean(raValues);
-		} else if (method != null && method.isAnnotationPresent(GenerateReport.class)) {
-			generateReport = true;
+		ReportsHandling rh = null;
+		GenerateReport reportValues = ReflectionUtils.invokeAnnotationMethod(annotation, GenerateReport.class);
+		if (reportValues == null && method != null) {
+			reportValues = method.getAnnotation(GenerateReport.class);
+		}
+		if (reportValues != null) {
+			rh = new ReportsHandling();
+			if (!reportValues.reportsDir().isEmpty()) {
+				rh.setReportsDir(reportValues.reportsDir());
+			}
 		}
 
 		ExceptionHandling eh = null;
@@ -90,6 +94,6 @@ public abstract class Phase<B extends PhaseDefinitionProcessorBuilder<A>, A exte
 				annotation,
 				job,
 				method,
-				generateReport);
+				rh);
 	}
 }

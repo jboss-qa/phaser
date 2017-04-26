@@ -15,14 +15,16 @@
  */
 package org.jboss.qa.phaser;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface GenerateReport {
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReportsHandling {
 
-	String reportsDir() default "";
+	@Getter
+	@Setter
+	private String reportsDir = System.getProperty("user.dir");
 }

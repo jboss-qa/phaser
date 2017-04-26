@@ -88,7 +88,7 @@ public class ExecutionNode {
 	}
 
 	private void generateXmlReport(Throwable e) {
-		if (phaseDefinition.getGenerateReport()) {
+		if (phaseDefinition.getReportsHandling() != null) {
 			XmlUtils.generateReport(e, phaseDefinition);
 		}
 	}

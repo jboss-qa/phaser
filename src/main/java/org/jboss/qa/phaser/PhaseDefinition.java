@@ -34,7 +34,7 @@ public class PhaseDefinition<A extends Annotation> implements Comparable<PhaseDe
 	@NonNull @Getter private A annotation;
 	@NonNull @Getter private Object job;
 	@Getter private Method method;
-	@Getter private Boolean generateReport;
+	@Getter private ReportsHandling reportsHandling;
 
 	@Override
 	public int compareTo(PhaseDefinition o) {
