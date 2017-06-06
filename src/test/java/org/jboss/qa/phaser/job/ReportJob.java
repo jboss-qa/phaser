@@ -21,7 +21,7 @@ public class ReportJob {
 	}
 
 	@OnException(execution = CONTINUE, report = SUPPRESS)
-	@GenerateReport
+	@GenerateReport(reportsDir = "target/phaser-reports")
 	@Second
 	public void failingPhase() {
 		log.info("ReportJob[ID=Second#1]");

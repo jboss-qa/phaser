@@ -39,7 +39,6 @@ public final class XmlUtils {
 	private static Document doc = null;
 
 	public static void generateReport(Throwable ex, PhaseDefinition phaseDefinition) {
-
 		try {
 			final DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 			final DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -51,7 +50,8 @@ public final class XmlUtils {
 			final TransformerFactory transformerFactory = TransformerFactory.newInstance();
 			final Transformer transformer = transformerFactory.newTransformer();
 			final DOMSource source = new DOMSource(doc);
-			final File reportFile = new File("target/phaser-reports", "report-"
+			final File reportsDir = new File(phaseDefinition.getReportsHandling().getReportsDir());
+			final File reportFile = new File(reportsDir, "TEST-"
 					+ phaseDefinition.getJob().getClass().getSimpleName() + "-" + System.nanoTime() + ".xml");
 			reportFile.getParentFile().mkdirs();
 			reportFile.createNewFile();

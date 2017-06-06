@@ -12,14 +12,30 @@ import org.jboss.qa.phaser.phase.second.SecondPhase;
 import org.jboss.qa.phaser.tools.SpyProxyFactory;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GenerateReportTest {
+
+	@BeforeTest
+	public void removePreviousReports() {
+		File phaserReports = new File("target/phaser-reports");
+		if (phaserReports.exists()) {
+			for(File file : phaserReports.listFiles()) {
+				file.delete();
+			}
+		}
+		File userDir = new File(System.getProperty("user.dir"));
+		for(File file : userDir.listFiles(new ReportFilenameFilter())) {
+			file.delete();
+		}
+	}
 
 	@Test
 	public void generateReportTest() throws Exception {
@@ -37,17 +53,15 @@ public class GenerateReportTest {
 		}
 		final File reportsDir = new File("target/phaser-reports");
 		assertTrue(reportsDir.exists());
-		assertEquals(2, reportsDir.listFiles().length);
-		final String successfulContent = FileUtils.readFileToString(reportsDir.listFiles()[0], "UTF-8");
-		final String failedContent = FileUtils.readFileToString(reportsDir.listFiles()[1], "UTF-8");
-		try {
-			testSuccesful(successfulContent);
-			testFailed(failedContent);
-		} catch (AssertionError ex) {
-			// in case of error swap files
-			testSuccesful(failedContent);
-			testFailed(successfulContent);
-		}
+		assertEquals(1, reportsDir.listFiles().length);
+		final String failedContent = FileUtils.readFileToString(reportsDir.listFiles()[0], "UTF-8");
+		testFailed(failedContent);
+
+		final File userDir = new File(System.getProperty("user.dir"));
+		final File reportFiles[] = userDir.listFiles(new ReportFilenameFilter());
+		assertEquals(1, reportFiles.length);
+		final String successfulContent = FileUtils.readFileToString(reportFiles[0], "UTF-8");
+		testSuccesful(successfulContent);
 	}
 
 	private void testSuccesful(String content) {
@@ -61,5 +75,12 @@ public class GenerateReportTest {
 		Assert.assertTrue(content.contains("org.jboss.qa.phaser.job.ReportJob"));
 		Assert.assertTrue(content.contains("failingPhase"));
 		Assert.assertTrue(content.contains("test failure"));
+	}
+
+	private class ReportFilenameFilter implements FilenameFilter {
+		@Override
+		public boolean accept(File file, String s) {
+			return s.startsWith("TEST-ReportJob");
+		}
 	}
 }
