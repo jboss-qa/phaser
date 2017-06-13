@@ -179,7 +179,7 @@
 		<repository>
 			<id>bintray-jboss-soa-qa-maven-phaser</id>
 			<name>jboss-soa-qa-maven-phaser</name>
-			<url>https://api.bintray.com/maven/jboss-soa-qa/maven/phaser</url>
+			<url>https://api.bintray.com/maven/jboss-soa-qa/maven/phaser/;publish=1</url>
 		</repository>
 	</distributionManagement>
 </project>
