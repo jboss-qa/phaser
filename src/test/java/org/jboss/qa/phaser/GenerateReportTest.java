@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.io.FilenameFilter;
 
+import junit.framework.AssertionFailedError;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -74,7 +75,7 @@ public class GenerateReportTest {
 		Assert.assertTrue(content.contains("errors=\"1\""));
 		Assert.assertTrue(content.contains("org.jboss.qa.phaser.job.ReportJob"));
 		Assert.assertTrue(content.contains("failingPhase"));
-		Assert.assertTrue(content.contains("test failure"));
+		Assert.assertTrue(content.contains(AssertionFailedError.class.getName()));
 	}
 
 	private class ReportFilenameFilter implements FilenameFilter {
