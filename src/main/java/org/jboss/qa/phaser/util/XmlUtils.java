@@ -15,6 +15,8 @@
  */
 package org.jboss.qa.phaser.util;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import org.jboss.qa.phaser.PhaseDefinition;
 
 import org.w3c.dom.Document;
@@ -100,9 +102,8 @@ public final class XmlUtils {
 		elem.setAttribute("time", "0");
 		if (ex != null) {
 			final Element failElem = doc.createElement("failure");
-			failElem.setAttribute("message", "test failure");
-			// TODO(jkasztur): get real message error
-			failElem.setTextContent(ex.toString());
+			failElem.setAttribute("type", ex.getCause().getClass().getName());
+			failElem.setTextContent(ExceptionUtils.getStackTrace(ex.getCause()));
 			elem.appendChild(failElem);
 		}
 		return elem;
