@@ -16,7 +16,7 @@
 
 	<groupId>org.jboss.qa</groupId>
 	<artifactId>phaser</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.5-SNAPSHOT</version>
 
 	<name>Phaser</name>
 	<url>https://github.com/jboss-soa-qa/phaser</url>
@@ -42,7 +42,7 @@
 		<url>https://github.com/jboss-soa-qa/phaser</url>
 		<connection>scm:git:git://github.com/jboss-soa-qa/phaser.git</connection>
 		<developerConnection>scm:git:git@github.com:jboss-soa-qa/phaser.git</developerConnection>
-		<tag>v1.0.4</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<properties>
