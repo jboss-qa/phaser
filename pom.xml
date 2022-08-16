@@ -19,6 +19,12 @@
 	<version>1.0.5-SNAPSHOT</version>
 
 	<name>Phaser</name>
+	<description>Phaser</description>
+	<developers>
+		<developer>
+			<name>jboss-qa</name>
+		</developer>
+	</developers>
 	<url>https://github.com/jboss-soa-qa/phaser</url>
 	<issueManagement>
 		<url>https://github.com/jboss-soa-qa/phaser/issues</url>
@@ -170,16 +176,23 @@
 
 	<pluginRepositories>
 		<pluginRepository>
-			<id>jboss-soa-qa-maven-repository</id>
-			<url>http://dl.bintray.com/jboss-soa-qa/maven/</url>
+			<id>jboss-public-repository-group</id>
+			<name>JBoss Public Repository Group</name>
+			<url>http://repository.jboss.org/nexus/content/groups/public/</url>
 		</pluginRepository>
 	</pluginRepositories>
 
 	<distributionManagement>
 		<repository>
-			<id>bintray-jboss-soa-qa-maven-phaser</id>
-			<name>jboss-soa-qa-maven-phaser</name>
-			<url>https://api.bintray.com/maven/jboss-soa-qa/maven/phaser/;publish=1</url>
+			<id>jboss-releases-repository</id>
+			<name>JBoss Releases Repository</name>
+			<url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2</url>
 		</repository>
+		<snapshotRepository>
+			<id>jboss-snapshots-repository</id>
+			<name>JBoss Snapshots Repository</name>
+			<url>https://repository.jboss.org/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
 	</distributionManagement>
+	
 </project>
